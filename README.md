@@ -5,7 +5,8 @@ and hosts built on it (Obsidian plugins today; web player and widgets planned).
 
 ```
 pnpm install
-pnpm check        # boundaries + typecheck + tests
+pnpm check        # boundaries + release rules + typecheck + tests
+pnpm build        # builds the Obsidian plugin (apps/obsidian-ink-graph)
 ```
 
 Rules: [constitution](.specify/memory/constitution.md). Picture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Work is organised with [Spec Kit](https://github.com/github/spec-kit) (`specs/`).
@@ -24,3 +25,7 @@ Rules: [constitution](.specify/memory/constitution.md). Picture: [docs/ARCHITECT
 pnpm --filter obsidian-ink-graph build
 pnpm --filter obsidian-ink-graph install:vault <path to a vault>
 ```
+
+## Releasing the plugin
+
+Bump the version in `apps/obsidian-ink-graph/manifest.json`, copy it to the root `manifest.json`, add the version to `versions.json`, commit, then `git tag x.y.z && git push origin x.y.z`. The workflow publishes `main.js`, `manifest.json` and `styles.css`. Store audit: [docs/obsidian-store-audit.md](docs/obsidian-store-audit.md).

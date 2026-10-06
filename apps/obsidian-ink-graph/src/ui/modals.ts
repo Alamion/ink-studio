@@ -33,7 +33,7 @@ class NameModal extends Modal {
 				error.setText(this.value ? (this.validate(this.value) ?? "") : "");
 			});
 			text.inputEl.addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), submit()));
-			window.setTimeout(() => text.inputEl.select(), 0);
+			activeWindow.setTimeout(() => text.inputEl.select(), 0);
 		});
 		setting.addButton((b) =>
 			b
@@ -104,7 +104,7 @@ class LinkModal extends Modal {
 		const textSetting = new Setting(this.contentEl).setName("Choice text").addText((t) => {
 			t.setValue(this.choice.text).onChange((v) => (this.choice.text = v));
 			t.inputEl.addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), this.finish(this.choice)));
-			window.setTimeout(() => t.inputEl.select(), 0);
+			activeWindow.setTimeout(() => t.inputEl.select(), 0);
 		});
 		new Setting(this.contentEl).addButton((b) => b.setButtonText("Link").setCta().onClick(() => this.finish(this.choice)));
 	}
@@ -156,7 +156,7 @@ class ConfirmModal extends Modal {
 			.addButton((b) => b.setButtonText("Cancel").onClick(() => this.finish(false)))
 			.addButton((b) => {
 				b.setButtonText("Delete").setWarning().onClick(() => this.finish(true));
-				window.setTimeout(() => b.buttonEl.focus(), 0);
+				activeWindow.setTimeout(() => b.buttonEl.focus(), 0);
 			});
 	}
 

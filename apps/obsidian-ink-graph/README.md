@@ -1,6 +1,6 @@
-# Ink Graph (prototype)
+# Ink Graph
 
-Read-only graph of an ink story inside Obsidian: knots, stitches (grouped inside their knot),
+Graph of an ink story inside Obsidian, editable on the canvas: knots, stitches (grouped inside their knot),
 diverts / choices / tunnels / threads / function calls, and where global variables are read or written.
 
 Works alongside Ink Player and Ink Language and does not register the `.ink` extension itself.

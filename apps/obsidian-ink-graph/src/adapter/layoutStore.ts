@@ -22,6 +22,10 @@ export function layoutPathFor(rootFile: string): string {
 	return rootFile.replace(/\.ink$/i, "") + CONFIG.layoutFileSuffix;
 }
 
+/**
+ * Uses the DataAdapter on purpose: Obsidian does not index files with unknown extensions (`.graph.json`)
+ * unless "Detect all file extensions" is on, so the Vault API cannot see or safely create the sidecar.
+ */
 export class LayoutStore {
 	constructor(private readonly adapter: DataAdapter) {}
 
@@ -32,9 +36,8 @@ export class LayoutStore {
 			if (!(await this.adapter.exists(path))) return emptyLayout();
 			const parsed: unknown = JSON.parse(await this.adapter.read(path));
 			return isSavedLayout(parsed) ? parsed : emptyLayout();
-		} catch (error) {
-			console.warn(`[ink-graph] Ignoring unreadable layout ${path}`, error);
-			return emptyLayout();
+		} catch {
+			return emptyLayout(); // unreadable sidecar: the layout is recomputed and overwritten on the next drag
 		}
 	}
 

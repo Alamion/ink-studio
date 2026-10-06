@@ -158,7 +158,7 @@ export class InkGraphView extends ItemView {
 			<GraphApp
 				graph={this.graph}
 				positions={layout.positions}
-				colorMode={document.body.hasClass("theme-dark") ? "dark" : "light"}
+				colorMode={activeDocument.body.hasClass("theme-dark") ? "dark" : "light"}
 				onOpen={(location) => void openSourceLocation(this.app, location)}
 				onPositionsChange={(changed: Record<string, Point>) => {
 					Object.assign(layout.positions, changed);

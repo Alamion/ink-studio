@@ -5,12 +5,16 @@
   "description": "Tools for interactive ink stories: core, engine, widgets, editors and players",
   "license": "MIT",
   "packageManager": "pnpm@11.24.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "check": "pnpm check:boundaries && pnpm typecheck && pnpm test"
+    "check": "pnpm check:boundaries && pnpm check:release && pnpm typecheck && pnpm test",
+    "check:release": "node scripts/check-release.mjs",
+    "build": "pnpm --filter obsidian-ink-graph build"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
