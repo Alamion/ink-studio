@@ -16,9 +16,11 @@ export interface EdgeUi {
 	onSelect: (edgeId: string) => void;
 	onMenu?: (event: MouseEvent, edgeId: string) => void;
 	onOpen: (location: SourceLocation) => void;
+	labelMaxLength: number;
+	labelMaxLines: number;
 }
 
-export const EdgeUiContext = createContext<EdgeUi>({ focusNodeId: null, selectedEdgeId: null, onSelect: () => {}, onOpen: () => {} });
+export const EdgeUiContext = createContext<EdgeUi>({ focusNodeId: null, selectedEdgeId: null, onSelect: () => {}, onOpen: () => {}, labelMaxLength: CONFIG.choiceLabelMaxLength, labelMaxLines: CONFIG.edges.maxLabelLines });
 
 export const KIND_ICON: Record<StoryEdge["kind"], string> = {
 	choice: "›",
@@ -44,8 +46,8 @@ export function InkEdge({ id, source, target, data, markerEnd }: EdgeProps<InkFl
 		focus ? (source === focus || target === focus ? "is-focused" : "is-faded") : ui.selectedEdgeId && !selected ? "is-faded" : "",
 		selected ? "is-selected" : "",
 	].join(" ");
-	const lines = data.edges.map(describe).filter((line): line is LabelLine => line !== null);
-	const shown = lines.slice(0, CONFIG.edges.maxLabelLines);
+	const lines = data.edges.map((e) => describe(e, ui.labelMaxLength)).filter((line): line is LabelLine => line !== null);
+	const shown = lines.slice(0, ui.labelMaxLines);
 	const hidden = lines.length - shown.length;
 
 	return (
@@ -93,7 +95,7 @@ interface LabelLine {
 }
 
 /** A plain unconditional divert needs no words: the line says it all. */
-function describe(edge: StoryEdge): LabelLine | null {
+function describe(edge: StoryEdge, maxLength: number): LabelLine | null {
 	const target = edge.targetLabel ? ` → (${edge.targetLabel})` : "";
 	let text: string;
 	if (edge.kind === "choice") text = edge.label ?? "(choice)";
@@ -104,15 +106,14 @@ function describe(edge: StoryEdge): LabelLine | null {
 	const full = `${edge.conditional ? "if " : ""}${text}${target}`.trim();
 	return {
 		icon: KIND_ICON[edge.kind],
-		text: truncate(`${text}${target}`.trim()),
+		text: truncate(`${text}${target}`.trim(), maxLength),
 		full: `${KIND_ICON[edge.kind]} ${full}`,
 		conditional: edge.conditional,
 		location: edge.location,
 	};
 }
 
-function truncate(text: string): string {
-	const max = CONFIG.choiceLabelMaxLength;
+function truncate(text: string, max: number): string {
 	return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 

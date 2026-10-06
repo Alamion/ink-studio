@@ -3,6 +3,7 @@
 
 import { debounce, ItemView, Scope, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { createRoot, type Root } from "react-dom/client";
+import type { InkGraphSettings } from "../settings";
 import { LayoutStore, type Point, type SavedLayout } from "../adapter/layoutStore";
 import { isInkFile, loadInkSources, openSourceLocation } from "../adapter/storySources";
 import { CONFIG } from "../config";
@@ -28,11 +29,12 @@ export class InkGraphView extends ItemView {
 	private readonly scheduleRebuild = debounce(() => void this.rebuild(), CONFIG.rebuildDebounceMs, true);
 	private readonly scheduleLayoutSave = debounce(() => void this.saveLayout(), CONFIG.layoutSaveDebounceMs, true);
 
-	constructor(leaf: WorkspaceLeaf) {
+	constructor(leaf: WorkspaceLeaf, private readonly getSettings: () => InkGraphSettings) {
 		super(leaf);
 		this.layoutStore = new LayoutStore(this.app.vault.adapter);
 		this.actions = new GraphActions({
 			app: this.app,
+			settings: this.getSettings,
 			rootFile: () => this.rootFile,
 			placeNode: (id, position) => this.updateLayout((positions) => (positions[id] = position)),
 			renameLayout: (oldId, newId) =>
@@ -147,6 +149,11 @@ export class InkGraphView extends ItemView {
 		this.render();
 	}
 
+	/** Called by the plugin after a setting changed. */
+	settingsChanged(): void {
+		this.render();
+	}
+
 	private render(): void {
 		if (!this.reactRoot) return;
 		if (!this.graph || !this.layout) {
@@ -157,6 +164,7 @@ export class InkGraphView extends ItemView {
 		this.reactRoot.render(
 			<GraphApp
 				graph={this.graph}
+				settings={this.getSettings()}
 				positions={layout.positions}
 				colorMode={activeDocument.body.hasClass("theme-dark") ? "dark" : "light"}
 				onOpen={(location) => void openSourceLocation(this.app, location)}

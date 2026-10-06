@@ -4,13 +4,19 @@ import "./ui/styles.css";
 import { Notice, Plugin } from "obsidian";
 import { isInkFile } from "./adapter/storySources";
 import { CONFIG } from "./config";
+import { DEFAULT_SETTINGS, sanitizeSettings, type InkGraphSettings } from "./settings";
+import { InkGraphSettingTab } from "./settingsTab";
 import { InkGraphView } from "./ui/InkGraphView";
 
 export default class InkGraphPlugin extends Plugin {
+	override settings: InkGraphSettings = { ...DEFAULT_SETTINGS };
+
 	override async onload(): Promise<void> {
+		this.settings = sanitizeSettings(await this.loadData());
+		this.addSettingTab(new InkGraphSettingTab(this.app, this));
 		// Deliberately no registerExtensions("ink"): Ink Player / Ink Language own the .ink editor,
 		// and Obsidian throws when an extension is registered twice.
-		this.registerView(CONFIG.viewType, (leaf) => new InkGraphView(leaf));
+		this.registerView(CONFIG.viewType, (leaf) => new InkGraphView(leaf, () => this.settings));
 		this.addRibbonIcon(CONFIG.icon, "Ink Graph: open story graph", () => void this.openGraph());
 		this.addCommand({
 			id: "open-story-graph",
@@ -27,6 +33,13 @@ export default class InkGraphPlugin extends Plugin {
 				return true;
 			},
 		});
+	}
+
+	async saveSettings(): Promise<void> {
+		await this.saveData(this.settings);
+		for (const leaf of this.app.workspace.getLeavesOfType(CONFIG.viewType)) {
+			if (leaf.view instanceof InkGraphView) leaf.view.settingsChanged();
+		}
 	}
 
 	/** Opens (or reuses) the graph tab for the story of the active .ink file. */

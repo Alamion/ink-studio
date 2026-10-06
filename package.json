@@ -14,7 +14,8 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "check": "pnpm check:boundaries && pnpm check:release && pnpm typecheck && pnpm test",
     "check:release": "node scripts/check-release.mjs",
-    "build": "pnpm --filter obsidian-ink-graph build"
+    "build": "pnpm --filter obsidian-ink-graph build",
+    "gif": "bash scripts/make-gif.sh"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

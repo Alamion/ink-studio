@@ -15,6 +15,7 @@ Checked against the plugin guidelines and submission requirements. Status of eac
 | `console` output | one `console.error` for a failed layout save and one for a failed layout; the noisy `console.warn` was removed (fixed) |
 | Inline styles | two, both dynamic positions; static styles live in `styles.css` |
 | `Vault` vs `DataAdapter` | the story files use the Vault API; the `.graph.json` sidecar uses the adapter on purpose, because Obsidian does not index unknown extensions (documented in `layoutStore.ts`) |
+| Settings | stored through `loadData` / `saveData`, validated on load (`sanitizeSettings`, unit-tested), applied live to open graphs; no heading with the plugin name in the tab |
 | Manifest | description was outdated ("read-only") and is now accurate; `authorUrl` added; id/name/description rules enforced by `pnpm check:release` |
 | Repository root | the store reads `manifest.json` and `versions.json` from the root: added, and kept equal to the app's manifest by `pnpm check:release` |
 | Release | tag equal to the manifest version, assets `main.js`, `manifest.json`, `styles.css`: `.github/workflows/release.yml` |
@@ -30,5 +31,5 @@ Checked against the plugin guidelines and submission requirements. Status of eac
 
 1. Make the repository public.
 2. Tag `0.1.0` (the workflow publishes the release).
-3. Add screenshots or a GIF to the README.
+3. Add the demo GIF to the README (screenshots are in `docs/img`, the GIF line is prepared; see docs/DEVELOPMENT.md).
 4. PR to `obsidianmd/obsidian-releases` adding the entry to `community-plugins.json`.

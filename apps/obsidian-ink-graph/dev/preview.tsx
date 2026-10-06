@@ -7,6 +7,7 @@ import "./preview.css";
 
 import { createRoot } from "react-dom/client";
 import { buildStoryGraph } from "@ink-studio/core";
+import { DEFAULT_SETTINGS } from "../src/settings";
 import { GraphApp } from "../src/ui/GraphApp";
 
 declare const __PREVIEW__: { root: string; sources: Record<string, string>; theme: "light" | "dark" };
@@ -20,6 +21,7 @@ document.body.classList.add(`theme-${__PREVIEW__.theme}`);
 createRoot(container).render(
 	<GraphApp
 		graph={graph}
+		settings={DEFAULT_SETTINGS}
 		positions={{}}
 		colorMode={__PREVIEW__.theme}
 		onOpen={(location) => console.log("open", location)}

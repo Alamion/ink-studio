@@ -209,3 +209,36 @@ describe("choiceless loops", () => {
 		expect(buildStoryGraph(`${DEMO_DIR}/main.ink`, loadDemo()).loops).toEqual([]);
 	});
 });
+
+describe("English demo story (used for screenshots)", () => {
+	const dir = "stories/demo-en";
+	const sources = new Map<string, string>();
+	for (const file of readdirSync(join(VAULT, dir))) if (file.endsWith(".ink")) sources.set(`${dir}/${file}`, readFileSync(join(VAULT, dir, file), "utf8"));
+	const english = buildStoryGraph(`${dir}/main.ink`, sources);
+	const russian = buildStoryGraph(`${DEMO_DIR}/main.ink`, loadDemo());
+
+	it("compiles cleanly", () => {
+		expect(english.compiled).toBe(true);
+		expect(english.diagnostics).toEqual([]);
+	});
+
+	it("has the same structure as the Russian demo", () => {
+		const ids = (g: typeof english) => g.nodes.map((n) => n.id).sort();
+		expect(ids(english)).toEqual(ids(russian));
+		expect(english.edges.length).toBe(russian.edges.length);
+		expect(english.variables.map((v) => v.name).sort()).toEqual(russian.variables.map((v) => v.name).sort());
+	});
+
+	it("the English loop demo has the same loop warnings as the Russian one", () => {
+		const load = (dir: string) => {
+			const sources = new Map<string, string>();
+			for (const file of readdirSync(join(VAULT, dir))) if (file.endsWith(".ink")) sources.set(`${dir}/${file}`, readFileSync(join(VAULT, dir, file), "utf8"));
+			return buildStoryGraph(`${dir}/main.ink`, sources);
+		};
+		const shape = (g: typeof english) => g.loops.map((l) => `${l.certain}:${[...l.nodeIds].sort().join(",")}`).sort();
+		const en = load("stories/loop-demo-en");
+		expect(en.compiled).toBe(true);
+		expect(shape(en)).toEqual(shape(load("stories/loop-demo")));
+		expect(en.loops.some((l) => l.certain)).toBe(true);
+	});
+});

@@ -1,11 +1,49 @@
 // Native Obsidian dialogs for canvas actions. Each resolves with the user's input, or null on cancel.
 
-import { Modal, Setting, type App } from "obsidian";
+import { FuzzySuggestModal, Modal, Setting, type App } from "obsidian";
 import type { LineChange, LinkKind, Reference, SourceLocation } from "@ink-studio/core";
 
 /** Asks for a knot/stitch name; `validate` returns an error message or null (checked as you type). */
 export function askName(app: App, title: string, initial: string, validate: (name: string) => string | null): Promise<string | null> {
 	return new Promise((resolve) => new NameModal(app, title, initial, validate, resolve).open());
+}
+
+/** Picks one of `files` (vault paths); resolves null on cancel. The default is listed first. */
+export function askFile(app: App, title: string, files: readonly string[]): Promise<string | null> {
+	return new Promise((resolve) => new FilePicker(app, title, files, resolve).open());
+}
+
+class FilePicker extends FuzzySuggestModal<string> {
+	private chosen = false;
+
+	constructor(
+		app: App,
+		title: string,
+		private readonly files: readonly string[],
+		private readonly resolve: (file: string | null) => void,
+	) {
+		super(app);
+		this.setPlaceholder(title);
+	}
+
+	getItems(): string[] {
+		return [...this.files];
+	}
+
+	getItemText(file: string): string {
+		return file;
+	}
+
+	onChooseItem(file: string): void {
+		this.chosen = true;
+		this.resolve(file);
+	}
+
+	override onClose(): void {
+		super.onClose();
+		// onChooseItem runs after onClose: wait a tick before treating the close as a cancel.
+		activeWindow.setTimeout(() => !this.chosen && this.resolve(null), 0);
+	}
 }
 
 class NameModal extends Modal {

@@ -11,3 +11,7 @@ apps/*/main.js
 apps/*/main.css
 apps/*/styles.css
 apps/*/dev/out/
+
+# Raw screen recordings for the demo GIF (docs/img/demo.gif is the committed result)
+docs/media/*
+!docs/media/.gitkeep

@@ -16,6 +16,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { CONFIG } from "../config";
 import type { Point } from "../adapter/layoutStore";
 import { ROOT_NODE_ID, type LoopWarning, type SourceLocation, type StoryEdge, type StoryGraph, type StoryNode, type VariableAccess } from "@ink-studio/core";
+import type { InkGraphSettings } from "../settings";
 import type { GraphSelection } from "./actions";
 import { EDGE_TYPES, EdgeUiContext, KIND_ICON } from "./edges";
 import { fitGroups } from "./groupFit";
@@ -24,6 +25,7 @@ import { basename, HighlightContext, NODE_TYPES, type NodeHighlight } from "./no
 
 export interface GraphAppProps {
 	graph: StoryGraph;
+	settings: InkGraphSettings;
 	/** Saved positions; read on every layout, never used as a React dependency. */
 	positions: Readonly<Record<string, Point>>;
 	colorMode: ColorMode;
@@ -56,6 +58,7 @@ export function GraphApp(props: GraphAppProps) {
 
 function GraphCanvas({
 	graph,
+	settings,
 	positions,
 	colorMode,
 	onOpen,
@@ -75,7 +78,7 @@ function GraphCanvas({
 	const [selectedVariable, setSelectedVariable] = useState<string | null>(null);
 	const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 	const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-	const [panelOpen, setPanelOpen] = useState(true);
+	const [panelOpen, setPanelOpen] = useState(settings.sidePanel !== "closed");
 	const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 	const { fitView, getNodes, screenToFlowPosition } = useReactFlow<InkFlowNode, InkFlowEdge>();
 	const fittedRoot = useRef<string | null>(null);
@@ -84,7 +87,7 @@ function GraphCanvas({
 	// In a narrow pane the panel would leave no room for the canvas.
 	useLayoutEffect(() => {
 		const width = appRef.current?.clientWidth ?? 0;
-		if (width > 0 && width < CONFIG.panelAutoCollapseBelowPx) setPanelOpen(false);
+		if (settings.sidePanel === "auto" && width > 0 && width < CONFIG.panelAutoCollapseBelowPx) setPanelOpen(false);
 	}, []);
 
 	useEffect(() => {
@@ -163,8 +166,16 @@ function GraphCanvas({
 	);
 
 	const edgeUi = useMemo(
-		() => ({ focusNodeId: hoveredNodeId ?? selectedNodeId, selectedEdgeId, onSelect: selectEdge, onMenu: showEdgeMenu, onOpen }),
-		[hoveredNodeId, selectedNodeId, selectedEdgeId, selectEdge, showEdgeMenu, onOpen],
+		() => ({
+			focusNodeId: hoveredNodeId ?? selectedNodeId,
+			selectedEdgeId,
+			onSelect: selectEdge,
+			onMenu: showEdgeMenu,
+			onOpen,
+			labelMaxLength: settings.labelMaxLength,
+			labelMaxLines: settings.labelMaxLines,
+		}),
+		[hoveredNodeId, selectedNodeId, selectedEdgeId, selectEdge, showEdgeMenu, onOpen, settings.labelMaxLength, settings.labelMaxLines],
 	);
 
 	const openNode = useCallback(

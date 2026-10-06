@@ -19,13 +19,15 @@ import {
 	type StoryEdge,
 	type StoryGraph,
 } from "@ink-studio/core";
-import { askLink, askName, confirmChanges, showBlocked } from "./modals";
+import type { InkGraphSettings } from "../settings";
+import { askFile, askLink, askName, confirmChanges, showBlocked } from "./modals";
 
 /** What is selected on the canvas: a node, or a visual edge (a bundle of links between two nodes). */
 export type GraphSelection = { kind: "node"; id: string } | { kind: "edge"; ids: string[] } | null;
 
 export interface ActionHost {
 	readonly app: App;
+	settings(): InkGraphSettings;
 	rootFile(): string | null;
 	/** Pins where a node that is about to be created should appear. */
 	placeNode(id: string, position: Point): void;
@@ -127,7 +129,7 @@ export class GraphActions {
 		if (!plan.ok) return void new Notice(`Ink Graph: ${plan.error}`, 6000);
 		const label = edges.length === 1 ? `link ${edges[0]!.source} → ${edges[0]!.target}` : `${edges.length} links`;
 		// Removing one line is easy to see and to undo; anything bigger is shown first.
-		const simple = plan.changes.length === 1 && plan.changes[0]!.before.length === 1;
+		const simple = this.host.settings().confirmDeletes === "multi-line" && plan.changes.length === 1 && plan.changes[0]!.before.length === 1;
 		if (!simple && !(await confirmChanges(this.host.app, `Delete ${label}`, `Delete ${label}? This changes the text as shown below.`, plan.changes))) return;
 		const ok = await this.run(`delete ${label}`, (g, s) => planDeleteLinks(g, s, edgeIds));
 		if (ok && simple) new Notice(`Ink Graph: deleted ${label} — Ctrl+Z to undo`);
@@ -153,7 +155,16 @@ export class GraphActions {
 		if (!graph) return;
 		const name = await askName(this.host.app, "New knot", "", (n) => checkName(graph.graph, n, null));
 		if (!name) return;
-		await this.run(`new knot ${name}`, (g, s) => planCreateKnot(g, s, name), () => this.host.placeNode(name, position));
+		const file = await this.knotFile(graph.graph);
+		if (!file) return;
+		await this.run(`new knot ${name}`, (g, s) => planCreateKnot(g, s, name, file), () => this.host.placeNode(name, position));
+	}
+
+	/** The root file, or (when the setting asks and the story has several files) one picked by the user. */
+	private async knotFile(graph: StoryGraph): Promise<string | null> {
+		if (this.host.settings().newKnotTarget !== "ask" || graph.files.length < 2) return graph.rootFile;
+		const files = [graph.rootFile, ...graph.files.filter((f) => f !== graph.rootFile)];
+		return askFile(this.host.app, "Add the new knot to…", files);
 	}
 
 	async createStitch(knotId: string): Promise<void> {
