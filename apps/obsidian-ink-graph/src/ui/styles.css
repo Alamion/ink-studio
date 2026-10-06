@@ -1,0 +1,490 @@
+/* Ink Graph — themed through Obsidian's CSS variables so it follows light/dark and community themes. */
+
+.ink-graph-view {
+	padding: 0 !important;
+	overflow: hidden;
+	--ink-divert: var(--text-muted);
+	--ink-choice: var(--interactive-accent);
+	--ink-tunnel: var(--color-purple);
+	--ink-thread: var(--color-cyan);
+	--ink-call: var(--color-orange);
+	--ink-dynamic: var(--color-yellow);
+	--ink-missing: var(--color-red);
+	--ink-read: var(--color-blue);
+	--ink-write: var(--color-orange);
+	--ink-loop: var(--color-red);
+	--ink-panel-width: 260px;
+}
+
+.ink-graph-app {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	display: flex;
+}
+
+.ink-graph-app .react-flow {
+	flex: 1;
+	--xy-background-color: var(--background-primary);
+	--xy-edge-label-background-color: var(--background-primary);
+	--xy-edge-label-color: var(--text-muted);
+	--xy-minimap-background-color: var(--background-secondary);
+	--xy-controls-button-background-color: var(--background-secondary);
+	--xy-controls-button-color: var(--text-normal);
+}
+
+.ink-graph-empty {
+	padding: var(--size-4-4);
+	color: var(--text-muted);
+}
+
+/* ---------- nodes ---------- */
+
+.ink-node {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-secondary);
+	color: var(--text-normal);
+	font-size: var(--font-ui-smaller);
+	padding: 6px 10px;
+	overflow: hidden;
+	transition: opacity 120ms ease, box-shadow 120ms ease;
+}
+
+.react-flow__node.selected > .ink-node {
+	box-shadow: 0 0 0 2px var(--interactive-accent);
+}
+
+.ink-group {
+	background: color-mix(in srgb, var(--background-secondary) 45%, transparent);
+	border-style: dashed;
+}
+
+.ink-node-root {
+	border-color: var(--interactive-accent);
+}
+.ink-node-function {
+	border-style: dotted;
+	background: var(--background-primary-alt);
+}
+.ink-node-missing {
+	border-color: var(--ink-missing);
+	color: var(--ink-missing);
+}
+
+.ink-node-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: var(--font-semibold);
+	white-space: nowrap;
+}
+
+.ink-node-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.ink-node-kind {
+	font-size: 0.8em;
+	font-weight: normal;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-faint);
+}
+
+.ink-tag {
+	font-size: 0.8em;
+	font-weight: normal;
+	padding: 0 4px;
+	border-radius: var(--radius-s);
+	background: var(--background-modifier-hover);
+	color: var(--text-muted);
+}
+.ink-tag-end {
+	color: var(--ink-missing);
+}
+
+.ink-node-meta {
+	color: var(--text-faint);
+	font-size: 0.85em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.ink-node-vars {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-height: 18px;
+}
+.ink-writes {
+	color: var(--ink-write);
+}
+.ink-reads {
+	color: var(--ink-read);
+}
+
+/* variable highlight */
+.ink-node.is-dimmed {
+	opacity: 0.3;
+}
+.ink-node.is-read {
+	box-shadow: 0 0 0 2px var(--ink-read);
+}
+.ink-node.is-write {
+	box-shadow: 0 0 0 2px var(--ink-write);
+}
+.ink-node.is-readwrite {
+	box-shadow: 0 0 0 2px var(--ink-write), 0 0 0 4px var(--ink-read);
+}
+
+/* ---------- edges ---------- */
+
+.ink-edge .react-flow__edge-path {
+	stroke-width: 1.5;
+}
+.ink-edge-divert .react-flow__edge-path {
+	stroke: var(--ink-divert);
+}
+.ink-edge-choice .react-flow__edge-path {
+	stroke: var(--ink-choice);
+}
+.ink-edge-tunnel .react-flow__edge-path {
+	stroke: var(--ink-tunnel);
+	stroke-dasharray: 8 4;
+}
+.ink-edge-thread .react-flow__edge-path {
+	stroke: var(--ink-thread);
+	stroke-dasharray: 2 4;
+}
+.ink-edge-call .react-flow__edge-path {
+	stroke: var(--ink-call);
+	stroke-dasharray: 4 4;
+	opacity: 0.7;
+}
+.ink-edge-dynamic .react-flow__edge-path {
+	stroke: var(--ink-dynamic);
+	stroke-dasharray: 1 3;
+}
+.ink-edge .react-flow__edge-text {
+	font-size: 11px;
+}
+
+/* ---------- side panel ---------- */
+
+.ink-panel {
+	width: var(--ink-panel-width);
+	box-sizing: border-box;
+	flex-shrink: 0;
+	overflow-y: auto;
+	border-left: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	font-size: var(--font-ui-small);
+	padding: var(--size-4-2) var(--size-4-3);
+}
+
+.ink-panel section + section {
+	margin-top: var(--size-4-4);
+}
+
+.ink-panel-title {
+	font-weight: var(--font-semibold);
+}
+
+.ink-panel-heading {
+	font-size: var(--font-ui-smaller);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-faint);
+	margin-bottom: var(--size-4-1);
+}
+
+.ink-panel-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: var(--size-4-2);
+}
+
+.ink-muted {
+	color: var(--text-muted);
+}
+.ink-error-text,
+.ink-diag-error {
+	color: var(--text-error);
+}
+.ink-diag-warning {
+	color: var(--text-warning);
+}
+
+.ink-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.ink-list li {
+	padding: 2px 0;
+}
+.ink-list li.is-active {
+	background: var(--background-modifier-hover);
+	border-radius: var(--radius-s);
+	padding: 2px 4px;
+}
+.ink-access-list {
+	padding-left: var(--size-4-2);
+	margin-top: 2px;
+}
+
+.ink-link {
+	cursor: pointer;
+	color: var(--text-normal);
+	text-decoration: none;
+}
+.ink-link:hover {
+	color: var(--text-accent);
+	text-decoration: underline;
+}
+
+
+/* ---------- choiceless loops ---------- */
+
+.ink-node.is-loop-certain {
+	border: 2px solid var(--ink-loop);
+}
+.ink-node.is-loop-possible {
+	border: 2px dashed var(--ink-loop);
+}
+.ink-tag-loop {
+	color: var(--ink-loop);
+	font-weight: var(--font-semibold);
+}
+.ink-edge-loop .react-flow__edge-path {
+	stroke: var(--ink-loop);
+	stroke-width: 2.5;
+	opacity: 1;
+}
+.ink-edge-loop-possible .react-flow__edge-path {
+	stroke-dasharray: 6 4;
+}
+
+.ink-loop-banner {
+	position: absolute;
+	top: var(--size-4-2);
+	left: var(--size-4-2);
+	z-index: 5;
+	max-width: calc(100% - var(--size-4-4) - 40px);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--font-ui-small);
+	color: var(--ink-loop);
+	background: var(--background-primary);
+	border: 1px solid var(--ink-loop);
+	border-radius: var(--radius-m);
+	padding: 4px 10px;
+	cursor: pointer;
+}
+.ink-loop-banner.is-possible {
+	border-style: dashed;
+}
+
+.ink-panel-toggle {
+	position: absolute;
+	top: var(--size-4-2);
+	z-index: 6;
+	margin-right: var(--size-4-2);
+	font-size: 16px;
+	line-height: 1;
+	padding: 2px 8px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+/* ---------- edge labels & focus ---------- */
+
+.ink-edge-label {
+	position: absolute;
+	pointer-events: all;
+	max-width: 220px;
+	font-size: 11px;
+	line-height: 1.35;
+	color: var(--text-muted);
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	padding: 2px 6px;
+	transition: opacity 120ms ease;
+	z-index: 1;
+}
+.ink-edge-label.is-loop {
+	border-color: var(--ink-loop);
+}
+.ink-edge-label-line {
+	display: flex;
+	gap: 4px;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.ink-edge-label-line:hover .ink-edge-label-text {
+	color: var(--text-accent);
+	text-decoration: underline;
+}
+.ink-edge-label-icon {
+	color: var(--text-faint);
+}
+.ink-edge-label-if {
+	color: var(--ink-dynamic);
+	font-weight: var(--font-semibold);
+}
+.ink-edge-label-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.ink-edge-label-more {
+	color: var(--text-faint);
+}
+
+.react-flow__edge-path.is-faded,
+.ink-edge-label.is-faded {
+	opacity: 0.15;
+}
+.react-flow__edge-path.is-focused {
+	stroke-width: 2.5;
+}
+.ink-edge-label.is-focused {
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+	z-index: 2;
+}
+
+/* ---------- selected edge ---------- */
+
+.react-flow__edge-path.is-selected {
+	stroke: var(--interactive-accent);
+	stroke-width: 3;
+}
+.ink-edge-label.is-selected {
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 1px var(--interactive-accent);
+	color: var(--text-normal);
+	z-index: 3;
+}
+.ink-edge-label {
+	cursor: pointer;
+}
+
+/* ---------- panel: node links and the link section ---------- */
+
+.ink-panel-subheading {
+	margin-top: var(--size-4-2);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+.ink-panel-actions button.mod-warning {
+	margin-left: auto;
+}
+.ink-panel-actions button + button {
+	margin-left: var(--size-4-2);
+}
+.ink-link-details > li {
+	padding: var(--size-4-1) 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+.ink-link-details > li:last-child {
+	border-bottom: none;
+}
+.ink-link-head {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+.ink-link-delete {
+	margin-left: auto;
+	padding: 0 4px;
+	height: auto;
+	font-size: 11px;
+}
+.ink-link-desc {
+	font-size: var(--font-ui-smaller);
+	margin: 2px 0;
+}
+.ink-link-site {
+	margin-top: 2px;
+	font-size: var(--font-ui-smaller);
+}
+.ink-snippet {
+	margin: 2px 0 0;
+	padding: 4px 6px;
+	font-family: var(--font-monospace);
+	font-size: 11px;
+	white-space: pre-wrap;
+	word-break: break-word;
+	background: var(--background-secondary);
+	border-radius: var(--radius-s);
+	user-select: text;
+}
+.ink-link-loop {
+	margin-top: var(--size-4-1);
+	font-size: var(--font-ui-smaller);
+	color: var(--ink-loop);
+}
+.ink-link-loop.is-possible {
+	color: var(--ink-dynamic);
+}
+
+/* ---------- modals: delete preview, blocking references ---------- */
+
+.ink-modal .ink-diff {
+	margin: var(--size-4-2) 0;
+}
+.ink-diff-file {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+.ink-diff pre {
+	margin: 2px 0 0;
+	padding: 4px 6px;
+	max-height: 240px;
+	overflow: auto;
+	font-size: 12px;
+	background: var(--background-secondary);
+	border-radius: var(--radius-s);
+	user-select: text;
+}
+.ink-diff-del {
+	color: var(--text-error);
+	background: rgba(var(--color-red-rgb), 0.08);
+}
+.ink-diff-add {
+	color: var(--text-success);
+	background: rgba(var(--color-green-rgb), 0.08);
+}
+.ink-diff-more {
+	color: var(--text-faint);
+}
+.ink-ref-list li {
+	margin: 4px 0;
+}
+.ink-ref-kind {
+	display: inline-block;
+	min-width: 90px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+.ink-ref-list code {
+	margin-left: var(--size-4-2);
+	font-size: 12px;
+}
+
+.ink-graph-view:focus {
+	outline: none;
+}

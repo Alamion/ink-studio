@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The boundary, enforced by the compiler: no DOM, no Node globals.
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src"]
+}

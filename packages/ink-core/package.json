@@ -1,0 +1,12 @@
+{
+  "name": "@ink-studio/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ink sources in, story graph and verified edit plans out. Pure TypeScript: no DOM, no Node, no UI.",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": { "typecheck": "tsc -p tsconfig.json" },
+  "dependencies": { "inkjs": "2.4.0" }
+}

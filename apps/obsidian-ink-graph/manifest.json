@@ -1,0 +1,9 @@
+{
+  "id": "ink-graph",
+  "name": "Ink Graph",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Read-only story graph for ink: knots, stitches, diverts and global variables.",
+  "author": "Alamion",
+  "isDesktopOnly": false
+}

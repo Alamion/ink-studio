@@ -1,0 +1,20 @@
+{
+  "name": "ink-studio",
+  "private": true,
+  "type": "module",
+  "description": "Tools for interactive ink stories: core, engine, widgets, editors and players",
+  "license": "MIT",
+  "packageManager": "pnpm@11.24.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "check": "pnpm check:boundaries && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

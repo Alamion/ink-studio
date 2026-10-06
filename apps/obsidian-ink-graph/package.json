@@ -1,0 +1,28 @@
+{
+  "name": "obsidian-ink-graph",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Story graph (knots, diverts, variables) with canvas editing for inkle's ink in Obsidian",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -p tsconfig.json && node esbuild.config.mjs production",
+    "typecheck": "tsc -p tsconfig.json",
+    "preview": "node dev/build-preview.mjs",
+    "install:vault": "node install-to-vault.mjs"
+  },
+  "dependencies": {
+    "@ink-studio/core": "workspace:*",
+    "@xyflow/react": "12.12.0",
+    "elkjs": "0.12.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.13.1"
+  }
+}

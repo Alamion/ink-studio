@@ -1,0 +1,48 @@
+/* Minimal stand-ins for Obsidian's theme variables. */
+body {
+	margin: 0;
+	font-family: system-ui, sans-serif;
+	--background-primary: #ffffff;
+	--background-primary-alt: #fafafa;
+	--background-secondary: #f4f4f5;
+	--background-modifier-border: #d4d4d8;
+	--background-modifier-hover: #e4e4e7;
+	--text-normal: #18181b;
+	--text-muted: #52525b;
+	--text-faint: #a1a1aa;
+	--text-accent: #7c3aed;
+	--text-error: #dc2626;
+	--text-warning: #d97706;
+	--interactive-accent: #7c3aed;
+	--color-red: #dc2626;
+	--color-orange: #ea580c;
+	--color-yellow: #ca8a04;
+	--color-cyan: #0891b2;
+	--color-blue: #2563eb;
+	--color-purple: #9333ea;
+	--radius-s: 4px;
+	--radius-m: 8px;
+	--font-ui-small: 13px;
+	--font-ui-smaller: 12px;
+	--font-semibold: 600;
+	--size-4-1: 4px;
+	--size-4-2: 8px;
+	--size-4-3: 12px;
+	--size-4-4: 16px;
+}
+body.theme-dark {
+	--background-primary: #1e1e1e;
+	--background-primary-alt: #242424;
+	--background-secondary: #262626;
+	--background-modifier-border: #3f3f46;
+	--background-modifier-hover: #333338;
+	--text-normal: #dcddde;
+	--text-muted: #a1a1aa;
+	--text-faint: #71717a;
+	--text-accent: #a78bfa;
+	--interactive-accent: #8b5cf6;
+}
+#app {
+	width: 100vw;
+	height: 100vh;
+}

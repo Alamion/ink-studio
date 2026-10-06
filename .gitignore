@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+# Local Obsidian test vault and scratch space (not part of the repo)
+sandbox/*
+!sandbox/README.md
+
+# Plugin build output (apps/*)
+apps/*/main.js
+apps/*/main.css
+apps/*/styles.css
+apps/*/dev/out/
