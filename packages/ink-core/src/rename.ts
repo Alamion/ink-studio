@@ -36,7 +36,7 @@ export function planRename(graph: StoryGraph, sources: ReadonlyMap<string, strin
 function namesResolvingTo(components: readonly Identifier[], context: ParsedObject, flow: FlowBase): Identifier[] {
 	const hits: Identifier[] = [];
 	for (let i = 0; i < components.length; i++) {
-		const prefix = new Path(components.slice(0, i + 1) as Identifier[]);
+		const prefix = new Path(components.slice(0, i + 1));
 		if (prefix.ResolveFromContext(context) === flow) hits.push(components[i]!);
 	}
 	return hits;

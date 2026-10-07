@@ -76,7 +76,7 @@ export function planDeleteNode(graph: StoryGraph, sources: ReadonlyMap<string, s
 			}
 		} else if (obj instanceof VariableReference && obj.pathIdentifiers.length > 0) {
 			// A plain variable resolves to nothing here; a read count resolves to the flow.
-			if (isInside(new Path(obj.pathIdentifiers as Identifier[]).ResolveFromContext(obj), flow)) blocking.push(reference("read count"));
+			if (isInside(new Path(obj.pathIdentifiers).ResolveFromContext(obj), flow)) blocking.push(reference("read count"));
 		}
 	}
 	if (blocking.length > 0) {

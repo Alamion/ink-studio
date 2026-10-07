@@ -33,3 +33,18 @@ Checked against the plugin guidelines and submission requirements. Status of eac
 2. Tag `0.1.0` (the workflow publishes the release).
 3. Add the demo GIF to the README (screenshots are in `docs/img`, the GIF line is prepared; see docs/DEVELOPMENT.md).
 4. PR to `obsidianmd/obsidian-releases` adding the entry to `community-plugins.json`.
+
+## Store review feedback (2026-10-07)
+
+| Finding | Resolution |
+|---|---|
+| `revealLeaf` newer than `minAppVersion` | replaced with `setActiveLeaf`; minAppVersion stays 1.4.0 |
+| undescribed `eslint-disable` | described |
+| `createElement("script")` in the bundle | came from react-dom's resource hoisting (`<script async src>` rendering), which Ink Graph never uses. `esbuild.config.mjs` now rewrites those calls at build time, so the bundle has no way to create script elements |
+| `console.log` in `dev/preview.tsx` | removed (no-op handlers) |
+| `requestAnimationFrame`, `activeWindow.setTimeout` | `window.` versions |
+| unnecessary type assertions in core | removed |
+| `setDynamicTooltip` deprecated | removed |
+| `!important` in styles.css | replaced by a more specific selector (`.view-content.ink-graph-view`); checked: padding is 0 in Obsidian 1.14 |
+| `setWarning` deprecated (`setDestructive` is 1.13+) | kept on purpose, to support older Obsidian |
+| `getSettingDefinitions()` (declarative settings, 1.13+) | not adopted: it would raise minAppVersion; the classic tab keeps working |

@@ -111,7 +111,7 @@ class FlowGraphBuilder {
 		});
 		// A knot with no content of its own (no weave) falls straight into its first stitch.
 		if (isFirstStitch && knot instanceof Knot && !knot.content.some((c) => c instanceof Weave)) {
-			this.transitions.push({ source: parentId!, target: id, conditional: false, edgeId: null, location: locationOf(flow) });
+			this.transitions.push({ source: parentId, target: id, conditional: false, edgeId: null, location: locationOf(flow) });
 		}
 	}
 

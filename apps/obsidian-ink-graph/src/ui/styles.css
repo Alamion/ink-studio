@@ -1,7 +1,7 @@
 /* Ink Graph — themed through Obsidian's CSS variables so it follows light/dark and community themes. */
 
-.ink-graph-view {
-	padding: 0 !important;
+.view-content.ink-graph-view {
+	padding: 0;
 	overflow: hidden;
 	--ink-divert: var(--text-muted);
 	--ink-choice: var(--interactive-accent);

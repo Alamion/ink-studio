@@ -1,5 +1,5 @@
 // Browser preview of the graph UI without Obsidian: `npm run preview`, then open dev/out/preview.html.
-// Uses the same core + React components as the plugin; Obsidian services are replaced by console logs.
+// Uses the same core + React components as the plugin; Obsidian services are replaced by no-ops.
 
 import "@xyflow/react/dist/style.css";
 import "../src/ui/styles.css";
@@ -24,18 +24,18 @@ createRoot(container).render(
 		settings={DEFAULT_SETTINGS}
 		positions={{}}
 		colorMode={__PREVIEW__.theme}
-		onOpen={(location) => console.log("open", location)}
-		onPositionsChange={(changed) => console.log("positions", changed)}
-		onResetLayout={() => console.log("reset layout")}
-		onConnect={(source, target) => console.log("connect", source, target)}
-		onConnectToNew={(source, drop) => console.log("connect to new", source, drop)}
-		onNodeMenu={(_e, id) => console.log("node menu", id)}
-		onPaneMenu={(_e, position) => console.log("pane menu", position)}
-		onEdgeMenu={(_e, ids) => console.log("edge menu", ids)}
-		onSelectionChange={(selection) => console.log("selection", selection)}
-		onRenameNode={(id) => console.log("rename", id)}
-		onDeleteNode={(id) => console.log("delete node", id)}
-		onDeleteLinks={(ids) => console.log("delete links", ids)}
+		onOpen={(location) => undefined}
+		onPositionsChange={(changed) => undefined}
+		onResetLayout={() => undefined}
+		onConnect={(source, target) => undefined}
+		onConnectToNew={(source, drop) => undefined}
+		onNodeMenu={(_e, id) => undefined}
+		onPaneMenu={(_e, position) => undefined}
+		onEdgeMenu={(_e, ids) => undefined}
+		onSelectionChange={(selection) => undefined}
+		onRenameNode={(id) => undefined}
+		onDeleteNode={(id) => undefined}
+		onDeleteLinks={(ids) => undefined}
 		sourceLine={(location) => sources.get(location.file)?.split("\n")[location.line - 1] ?? null}
 	/>,
 );
