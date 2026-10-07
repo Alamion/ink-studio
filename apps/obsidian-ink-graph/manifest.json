@@ -1,7 +1,7 @@
 {
   "id": "ink-graph",
   "name": "Ink Graph",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.4.0",
   "description": "Story graph for ink: browse knots, stitches, diverts and variables on a canvas, and edit the story by drawing links.",
   "author": "Alamion",
