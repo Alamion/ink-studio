@@ -5,9 +5,7 @@ Ink Graph draws knots, stitches, choices, diverts, tunnels and threads as a map,
 read and written, warns about loops that would hang the story, and lets you change the story by working on the map.
 Every action is written back to your `.ink` text, so nothing else stores your story.
 
-<!-- GIF: record a short clip, then `pnpm gif docs/media/<video> --start 3 --end 25` and uncomment the line below.
-![Ink Graph in action](docs/img/demo.gif)
--->
+![Building a small story on the graph: an empty file, new knots dragged out of the start block, a link between two of them, the text appearing in the editor and the player](docs/img/demo.gif)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/overview-dark.png">

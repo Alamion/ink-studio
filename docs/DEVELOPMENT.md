@@ -54,7 +54,7 @@ Start it with `e2e/launch-isolated.sh`, stop it with `e2e/stop-isolated.sh`. See
   (`fixtures/stories/demo-en`, `loop-demo-en`) in the isolated Obsidian. Re-run it after a visual change.
 - The GIF is made from a screen recording: put the video in `docs/media/` (git-ignored) and run
   `pnpm gif docs/media/<video> --start 3 --end 25`. The script picks the largest size that stays under the budget
-  (4 MB by default) and writes `docs/img/demo.gif`. Then uncomment the GIF line in the README.
+  (4 MB by default) and writes `docs/img/demo.gif`. The README already points at it.
 
 ## Releasing the plugin
 
