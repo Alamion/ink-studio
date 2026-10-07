@@ -42,7 +42,7 @@ following `INCLUDE`s upwards, so the graph covers every file the story includes.
 | Right-click the canvas | New knot |
 | Right-click a knot | Add stitch, rename, delete |
 | Drag from a node's right handle to another node | Link: choice, sticky choice, divert or tunnel |
-| Drag from a handle and let go on empty canvas | A new knot, linked from the node you started at |
+| Drag from a handle and let go on empty canvas | A new knot, linked from the node you started at (the `(start)` block works too: an empty story grows its first knot this way) |
 | Drag from a handle and let go inside a knot's group | A new stitch in that knot, linked the same way |
 | Delete or Backspace | Delete the selected node or link |
 | Ctrl/Cmd+Z in the graph | Undo the last graph edit |
@@ -59,6 +59,8 @@ following `INCLUDE`s upwards, so the graph covers every file the story includes.
   The node and its link are one change: a single undo takes back both.
 - **Rename** updates every reference ink resolves to the node, across files: diverts, `knot.stitch` paths and read
   counts like `{knot > 1}`. Prose and comments are left alone.
+- **From the `(start)` block** a link becomes a line above the first knot. If the story already starts with a divert, that
+  divert is named in the message: anything added after it would never run, so change that line instead.
 - **Delete a node** removes its lines up to the next header (a knot goes with its stitches). Diverts and choices that led
   to it are redirected to `-> END`. Tunnels, threads, function calls, read counts and divert variables cannot be
   redirected, so the delete is refused and lists those places; click one to open it.

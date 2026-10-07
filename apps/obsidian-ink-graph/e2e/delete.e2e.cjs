@@ -1,14 +1,15 @@
 // End-to-end: select links and nodes, the Link panel, Delete key, previews, blocked deletes, undo.
-const { chromium } = require("/usr/local/lib/node_modules/@playwright/cli/node_modules/playwright-core");
+const { connect } = require("./common.cjs");
 const OUT = process.argv[2];
 (async () => {
-  const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
-  const page = browser.contexts().flatMap((c) => c.pages()).find((p) => p.url().startsWith("app://obsidian.md/index.html"));
+  const { browser, page } = await connect();
+  await page.evaluate(() => window.electronWindow.setSize(1500, 900)); // the default window is too small for two panes
+  await page.waitForTimeout(1000);
   await page.evaluate(async () => {
     await app.plugins.disablePlugin("ink-graph");
     await app.plugins.enablePlugin("ink-graph");
     app.workspace.getLeavesOfType("ink-graph-view").forEach((l) => l.detach());
-    const md = app.workspace.getLeavesOfType("markdown")[0];
+    const md = app.workspace.getLeavesOfType("markdown")[0] ?? app.workspace.getLeaf(false); // a fresh vault starts with an empty pane
     await md.openFile(app.vault.getAbstractFileByPath("stories/demo/main.ink"));
     const leaf = app.workspace.getLeaf("split", "vertical");
     await leaf.setViewState({ type: "ink-graph-view", state: { rootFile: "stories/demo/main.ink" }, active: true });

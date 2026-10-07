@@ -1,7 +1,7 @@
 // Obsidian view hosting the React graph. Owns the lifecycle: which story is shown, when to
 // rebuild (debounced on .ink changes), persisting dragged positions, and routing canvas actions.
 
-import { debounce, ItemView, Scope, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { debounce, ItemView, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { createRoot, type Root } from "react-dom/client";
 import type { InkGraphSettings } from "../settings";
 import { LayoutStore, type Point, type SavedLayout } from "../adapter/layoutStore";
@@ -47,20 +47,6 @@ export class InkGraphView extends ItemView {
 				}),
 			refresh: () => this.rebuild(),
 		});
-		// Ctrl/Cmd+Z while the graph has focus undoes the last canvas edit.
-		this.scope = new Scope(this.app.scope);
-		this.scope.register(["Mod"], "z", () => {
-			void this.actions.undo();
-			return false;
-		});
-		// Delete / Backspace remove the selected node or link (after a preview when it is more than a line).
-		for (const key of ["Delete", "Backspace"]) {
-			this.scope.register([], key, (event) => {
-				if (!this.selection || isTyping(event)) return true;
-				void this.actions.deleteSelection(this.selection);
-				return false;
-			});
-		}
 	}
 
 	getViewType(): string {
@@ -94,6 +80,22 @@ export class InkGraphView extends ItemView {
 			if (this.app.workspace.getActiveViewOfType(InkGraphView) !== this) this.app.workspace.setActiveLeaf(this.leaf, { focus: false });
 			if (!isTyping(event)) this.contentEl.focus({ preventScroll: true });
 		}, { capture: true });
+		// Keys are handled on the view itself, not through Obsidian's key scopes: a scope is activated only when the
+		// leaf changes, and a click inside the graph (which focuses it) must be enough. Not while typing in a field.
+		this.registerDomEvent(this.contentEl, "keydown", (event) => {
+			if (isTyping(event)) return;
+			const mod = event.ctrlKey || event.metaKey;
+			// `code`, not `key`: Ctrl+Z must work on any keyboard layout.
+			if (mod && !event.shiftKey && !event.altKey && event.code === "KeyZ") {
+				event.preventDefault();
+				event.stopPropagation();
+				void this.actions.undo();
+			} else if (!mod && !event.altKey && (event.key === "Delete" || event.key === "Backspace") && this.selection) {
+				event.preventDefault();
+				event.stopPropagation();
+				void this.actions.deleteSelection(this.selection);
+			}
+		});
 		this.reactRoot = createRoot(this.contentEl);
 		const onInkChange = (file: TAbstractFile): void => {
 			if (isInkFile(file)) this.scheduleRebuild();

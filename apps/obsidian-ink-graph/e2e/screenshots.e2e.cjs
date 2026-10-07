@@ -1,6 +1,6 @@
 // Takes the README screenshots from the English demo story in the isolated Obsidian (see setup-debug.sh).
 // Usage: node screenshots.e2e.cjs <repo root>   (writes <repo root>/docs/img/*.png)
-const { chromium } = require("/usr/local/lib/node_modules/@playwright/cli/node_modules/playwright-core");
+const { connect } = require("./common.cjs");
 const fs = require("node:fs");
 const path = require("node:path");
 const ROOT = process.argv[2];
@@ -10,10 +10,7 @@ const VAULT = path.join(process.env.HOME, ".var/app/md.obsidian.Obsidian/cache/i
 (async () => {
   for (const dir of ["demo-en", "loop-demo-en"]) fs.cpSync(path.join(ROOT, "fixtures/stories", dir), path.join(VAULT, "stories", dir), { recursive: true });
   fs.mkdirSync(OUT, { recursive: true });
-  const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
-  const page = browser.contexts().flatMap((c) => c.pages()).find((p) => p.url().startsWith("app://obsidian.md/index.html"));
-  // right after launch the page may still be loading
-  await page.waitForFunction(() => window.electronWindow && window.app?.workspace?.layoutReady, null, { timeout: 60000 });
+  const { browser, page } = await connect();
   const wait = (ms) => page.waitForTimeout(ms);
   const VIEW = '.workspace-leaf-content[data-type="ink-graph-view"] .view-content';
   const shot = async (name) => { await page.bringToFront(); await page.locator(VIEW).screenshot({ path: `${OUT}/${name}.png` }); };

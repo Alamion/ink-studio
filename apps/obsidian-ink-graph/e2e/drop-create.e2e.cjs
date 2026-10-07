@@ -1,11 +1,8 @@
 // End-to-end: drag a link from a node and let go on empty canvas / inside a knot's group / outside the view.
 // Needs the isolated Obsidian (e2e/launch-isolated.sh). Usage: node drop-create.e2e.cjs
-const { chromium } = require("/usr/local/lib/node_modules/@playwright/cli/node_modules/playwright-core");
+const { connect } = require("./common.cjs");
 (async () => {
-  const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
-  const page = browser.contexts().flatMap((c) => c.pages()).find((p) => p.url().startsWith("app://obsidian.md/index.html"));
-  // right after launch the page may still be loading
-  await page.waitForFunction(() => window.electronWindow && window.app?.workspace?.layoutReady, null, { timeout: 60000 });
+  const { browser, page } = await connect();
   const check = (name, ok, extra = "") => console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  " + extra}`);
   const wait = (ms) => page.waitForTimeout(ms);
   const VIEW = '.workspace-leaf-content[data-type="ink-graph-view"] .view-content';
