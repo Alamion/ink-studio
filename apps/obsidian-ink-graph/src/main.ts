@@ -52,7 +52,7 @@ export default class InkGraphPlugin extends Plugin {
 		const existing = this.app.workspace.getLeavesOfType(CONFIG.viewType)[0];
 		const leaf = existing ?? this.app.workspace.getLeaf("tab");
 		if (!existing) await leaf.setViewState({ type: CONFIG.viewType, active: true });
-		await this.app.workspace.revealLeaf(leaf);
+		this.app.workspace.setActiveLeaf(leaf, { focus: true });
 		if (leaf.view instanceof InkGraphView) await leaf.view.showStoryOf(file.path);
 	}
 }

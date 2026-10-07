@@ -59,7 +59,6 @@ export class InkGraphSettingTab extends PluginSettingTab {
 				s
 					.setLimits(LABEL_LENGTH_RANGE.min, LABEL_LENGTH_RANGE.max, LABEL_LENGTH_RANGE.step)
 					.setValue(settings.labelMaxLength)
-					.setDynamicTooltip()
 					.onChange((value) => {
 						settings.labelMaxLength = value;
 						save();
@@ -73,7 +72,6 @@ export class InkGraphSettingTab extends PluginSettingTab {
 				s
 					.setLimits(LABEL_LINES_RANGE.min, LABEL_LINES_RANGE.max, LABEL_LINES_RANGE.step)
 					.setValue(settings.labelMaxLines)
-					.setDynamicTooltip()
 					.onChange((value) => {
 						settings.labelMaxLines = value;
 						save();

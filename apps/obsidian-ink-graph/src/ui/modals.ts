@@ -42,7 +42,7 @@ class FilePicker extends FuzzySuggestModal<string> {
 	override onClose(): void {
 		super.onClose();
 		// onChooseItem runs after onClose: wait a tick before treating the close as a cancel.
-		activeWindow.setTimeout(() => !this.chosen && this.resolve(null), 0);
+		window.setTimeout(() => !this.chosen && this.resolve(null), 0);
 	}
 }
 
@@ -71,7 +71,7 @@ class NameModal extends Modal {
 				error.setText(this.value ? (this.validate(this.value) ?? "") : "");
 			});
 			text.inputEl.addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), submit()));
-			activeWindow.setTimeout(() => text.inputEl.select(), 0);
+			window.setTimeout(() => text.inputEl.select(), 0);
 		});
 		setting.addButton((b) =>
 			b
@@ -142,7 +142,7 @@ class LinkModal extends Modal {
 		const textSetting = new Setting(this.contentEl).setName("Choice text").addText((t) => {
 			t.setValue(this.choice.text).onChange((v) => (this.choice.text = v));
 			t.inputEl.addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), this.finish(this.choice)));
-			activeWindow.setTimeout(() => t.inputEl.select(), 0);
+			window.setTimeout(() => t.inputEl.select(), 0);
 		});
 		new Setting(this.contentEl).addButton((b) => b.setButtonText("Link").setCta().onClick(() => this.finish(this.choice)));
 	}
@@ -219,7 +219,7 @@ class NewNodeModal extends Modal {
 				}
 			});
 			enterSubmits(t.inputEl);
-			activeWindow.setTimeout(() => t.inputEl.focus(), 0);
+			window.setTimeout(() => t.inputEl.focus(), 0);
 		});
 		new Setting(this.contentEl).setName("Link").addDropdown((d) => {
 			for (const [kind, label] of Object.entries(LINK_KINDS)) d.addOption(kind, label);
@@ -288,7 +288,7 @@ class ConfirmModal extends Modal {
 			.addButton((b) => b.setButtonText("Cancel").onClick(() => this.finish(false)))
 			.addButton((b) => {
 				b.setButtonText("Delete").setWarning().onClick(() => this.finish(true));
-				activeWindow.setTimeout(() => b.buttonEl.focus(), 0);
+				window.setTimeout(() => b.buttonEl.focus(), 0);
 			});
 	}
 

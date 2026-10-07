@@ -103,7 +103,7 @@ function GraphCanvas({
 				// Fit once per story (and after an explicit re-layout), not on every edit of the text.
 				if (fittedRoot.current !== graph.rootFile) {
 					fittedRoot.current = graph.rootFile;
-					requestAnimationFrame(() => void fitView({ padding: 0.1 }));
+					window.requestAnimationFrame(() => void fitView({ padding: 0.1 }));
 				}
 			})
 			.catch((error: unknown) => console.error("[ink-graph] layout failed", error));
@@ -111,7 +111,7 @@ function GraphCanvas({
 			cancelled = true;
 		};
 		// `positions` is intentionally not a dependency: dragging must not trigger a re-layout.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- positions is read on every layout but must not trigger one
 	}, [graph, showFunctions, layoutNonce, setNodes, fitView]);
 
 	const highlight = useMemo(() => highlighter(graph, selectedVariable), [graph, selectedVariable]);
