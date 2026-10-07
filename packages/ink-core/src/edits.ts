@@ -115,12 +115,33 @@ export function planLink(
 		divert: `${afterChoices ? "- " : ""}-> ${path}`,
 		tunnel: `${afterChoices ? "- " : ""}-> ${path} ->`,
 	}[kind];
-	// An empty start: the line goes first, with a blank line before the first knot. After declarations it gets air.
-	const edit =
-		end === 0
-			? { file, from: { line: 1, ch: 0 }, to: { line: 1, ch: 0 }, text: `${statement}\n${lines.some((l) => l.trim() !== "") ? "\n" : ""}` }
-			: insertAfterLine(file, lines, end, fromStart && lastMarker === undefined ? ["", statement] : [statement]);
+	// A fresh node ends in the placeholder `-> END`. Once the node leads somewhere that exit is dead weight (and a
+	// divert written after it would never run), so the new link takes its place; a tunnel goes before it, since the
+	// story still ends there when the tunnel returns. Only a node-level END counts: after choices it belongs to a branch.
+	const exitLine = lastMarker === undefined ? placeholderExit(own, headerLine) : null;
+	let edit;
+	if (exitLine !== null && kind !== "tunnel") {
+		const indent = /^\s*/.exec(lines[exitLine - 1]!)![0];
+		edit = { file, from: { line: exitLine, ch: 0 }, to: { line: exitLine, ch: lines[exitLine - 1]!.length }, text: indent + statement };
+	} else if (exitLine !== null) {
+		edit = insertAfterLine(file, lines, exitLine - 1, [statement]);
+	} else if (end === 0) {
+		// An empty start: the line goes first, with a blank line before the first knot. After declarations it gets air.
+		edit = { file, from: { line: 1, ch: 0 }, to: { line: 1, ch: 0 }, text: `${statement}\n${lines.some((l) => l.trim() !== "") ? "\n" : ""}` };
+	} else {
+		edit = insertAfterLine(file, lines, end, fromStart && lastMarker === undefined ? ["", statement] : [statement]);
+	}
 	return verified(graph, sources, [edit], (after) => after.edges.some((e) => e.source === sourceId && e.target === targetId));
+}
+
+/** `-> END` / `-> DONE` on a line of its own (a trailing comment is fine). */
+const PLACEHOLDER_EXIT = /^\s*->\s*(?:END|DONE)\s*(?:\/\/.*)?$/;
+
+/** 1-based line of the node's final `-> END`, if its last content line is exactly that; otherwise null. */
+function placeholderExit(own: readonly string[], headerLine: number): number | null {
+	let last = own.length - 1;
+	while (last >= 0 && own[last]!.trim() === "") last--;
+	return last >= 0 && PLACEHOLDER_EXIT.test(own[last]!) ? headerLine + last + 1 : null;
 }
 
 /** A top-level line that leaves the start of the story by itself: a divert, a tunnel call or a gather's divert. */

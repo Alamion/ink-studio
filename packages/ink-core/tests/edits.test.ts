@@ -338,3 +338,70 @@ describe("links from the start of the story", () => {
 		expect(next.edges.some((e) => e.source === ROOT_NODE_ID && e.target === "cave")).toBe(true);
 	});
 });
+
+describe("linking from a node that still has its placeholder -> END", () => {
+	/** A fresh knot "cellar" (its stub ends in `-> END`), then a link from it. */
+	function fromFresh(kind: "choice" | "divert" | "tunnel", target = "forest") {
+		const { sources, graph } = demo();
+		const made = apply(planCreateKnot(graph, sources, "cellar"), sources);
+		expect(made.after.get(ROOT)).toContain("// TODO: write cellar\n-> END");
+		return apply(planLink(made.graph, made.after, "cellar", target, kind, "Climb up"), made.after);
+	}
+	const cellar = (after: Map<string, string>) => after.get(ROOT)!.slice(after.get(ROOT)!.indexOf("=== cellar ==="));
+
+	it("a divert replaces the END", () => {
+		const { graph, after } = fromFresh("divert");
+		expect(errors(graph)).toEqual([]);
+		expect(cellar(after)).toBe("=== cellar ===\n// TODO: write cellar\n-> forest\n");
+		expect(graph.edges.some((e) => e.source === "cellar" && e.target === "forest" && e.kind === "divert")).toBe(true);
+	});
+
+	it("a choice replaces the END", () => {
+		const { graph, after } = fromFresh("choice");
+		expect(errors(graph)).toEqual([]);
+		expect(cellar(after)).toBe("=== cellar ===\n// TODO: write cellar\n* [Climb up] -> forest\n");
+	});
+
+	it("a tunnel goes before the END, which still ends the story when the tunnel returns", () => {
+		const { graph, after } = fromFresh("tunnel", "inventory_screen");
+		expect(errors(graph)).toEqual([]);
+		expect(cellar(after)).toBe("=== cellar ===\n// TODO: write cellar\n-> inventory_screen ->\n-> END\n");
+	});
+
+	it("the second link finds no END left and simply adds a choice", () => {
+		const { sources, graph } = demo();
+		const made = apply(planCreateKnot(graph, sources, "cellar"), sources);
+		const one = apply(planLink(made.graph, made.after, "cellar", "forest", "choice", "Up"), made.after);
+		const two = apply(planLink(one.graph, one.after, "cellar", "tavern", "choice", "Over"), one.after);
+		expect(errors(two.graph)).toEqual([]);
+		expect(cellar(two.after)).toBe("=== cellar ===\n// TODO: write cellar\n* [Up] -> forest\n* [Over] -> tavern\n");
+	});
+
+	it("an END that belongs to a choice's branch stays", () => {
+		const { sources, graph } = demo();
+		const text = "=== maze ===\nYou are lost.\n* [Give up]\n    Gone.\n    -> END\n";
+		const withMaze = new Map(sources);
+		withMaze.set(ROOT, withMaze.get(ROOT) + "\n" + text);
+		const g = buildStoryGraph(ROOT, withMaze);
+		const { after, graph: next } = apply(planLink(g, withMaze, "maze", "forest", "choice", "Wander"), withMaze);
+		expect(errors(next)).toEqual([]);
+		expect(after.get(ROOT)).toContain("    Gone.\n    -> END\n* [Wander] -> forest");
+	});
+
+	it("an END that is not the last line is left alone", () => {
+		const { sources, graph } = demo();
+		const withNode = new Map(sources);
+		withNode.set(ROOT, withNode.get(ROOT) + "\n=== odd ===\n{ gold > 3: -> END }\nStill here.\n");
+		const g = buildStoryGraph(ROOT, withNode);
+		const { after } = apply(planLink(g, withNode, "odd", "forest", "divert"), withNode);
+		expect(after.get(ROOT)).toContain("{ gold > 3: -> END }\nStill here.\n-> forest");
+	});
+
+	it("a stitch's own END is replaced too, and the next stitch is untouched", () => {
+		const { sources, graph } = demo();
+		const made = apply(planCreateStitch(graph, sources, "forest", "edge"), sources);
+		const { after, graph: next } = apply(planLink(made.graph, made.after, "forest.edge", "tavern", "divert"), made.after);
+		expect(errors(next)).toEqual([]);
+		expect(after.get(ROOT)).toContain("= edge\n// TODO: write edge\n-> tavern\n");
+	});
+});

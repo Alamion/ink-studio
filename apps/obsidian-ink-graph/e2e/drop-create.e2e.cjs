@@ -95,6 +95,18 @@ const { connect } = require("./common.cjs");
   check("knot written", created.includes("=== cellar ==="));
   check("link written in the source knot", /\+? ?\* \[cellar\] -> cellar|\* \[cellar\] -> cellar/.test(created), created.slice(-400));
   check("the new knot is on the canvas at the drop spot", (await page.locator(`${VIEW} .react-flow__node[data-id="cellar"]`).count()) === 1);
+  // A chain: from the fresh knot to another new one. The first knot's placeholder END must give way to the link.
+  await dragTo("cellar", emptySpot.x + 400, emptySpot.y);
+  await page.locator(".modal input[type=text]").first().fill("attic");
+  await page.locator(".modal button", { hasText: "Create" }).click();
+  await wait(1800);
+  const chained = await read(MAIN);
+  const cellarPart = chained.slice(chained.indexOf("=== cellar ==="), chained.indexOf("=== attic ==="));
+  check("the new knot's placeholder END is replaced by the link", /\* \[attic\] -> attic/.test(cellarPart) && !/-> END/.test(cellarPart), cellarPart);
+  await page.locator(`${VIEW} .react-flow__pane`).click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+z");
+  await wait(1500);
+  check("one undo takes back the second knot and restores the END", /-> END/.test((await read(MAIN)).slice((await read(MAIN)).indexOf("=== cellar ==="))) && !(await read(MAIN)).includes("attic"));
   await page.locator(`${VIEW} .react-flow__pane`).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+z");
   await wait(1500);

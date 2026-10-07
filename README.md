@@ -59,6 +59,9 @@ following `INCLUDE`s upwards, so the graph covers every file the story includes.
   The node and its link are one change: a single undo takes back both.
 - **Rename** updates every reference ink resolves to the node, across files: diverts, `knot.stitch` paths and read
   counts like `{knot > 1}`. Prose and comments are left alone.
+- **The placeholder `-> END`** that a new knot or stitch starts with gives way to the first link you draw from it: a
+  divert or a choice takes its place (a tunnel goes before it, since the story still ends there). Later links just add
+  lines. An `-> END` that belongs to a choice's branch, or is not the node's last line, is never touched.
 - **From the `(start)` block** a link becomes a line above the first knot. If the story already starts with a divert, that
   divert is named in the message: anything added after it would never run, so change that line instead.
 - **Delete a node** removes its lines up to the next header (a knot goes with its stitches). Diverts and choices that led
