@@ -2,7 +2,8 @@
 
 export const CONFIG = {
 	viewType: "ink-graph-view",
-	icon: "git-fork",
+	/** Not "git-fork": that is the core Graph view's icon, and two identical buttons in the ribbon are indistinguishable. */
+	icon: "network",
 	inkExtension: "ink",
 	/** Sidecar next to the story root: `main.ink` → `main.graph.json` (commit it with the story). */
 	layoutFileSuffix: ".graph.json",

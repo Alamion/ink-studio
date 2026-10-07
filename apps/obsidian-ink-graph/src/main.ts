@@ -17,7 +17,7 @@ export default class InkGraphPlugin extends Plugin {
 		// Deliberately no registerExtensions("ink"): Ink Player / Ink Language own the .ink editor,
 		// and Obsidian throws when an extension is registered twice.
 		this.registerView(CONFIG.viewType, (leaf) => new InkGraphView(leaf, () => this.settings));
-		this.addRibbonIcon(CONFIG.icon, "Ink Graph: open story graph", () => void this.openGraph());
+		this.addRibbonIcon(CONFIG.icon, "Open ink graph", () => void this.openGraph());
 		this.addCommand({
 			id: "open-story-graph",
 			name: "Open story graph",

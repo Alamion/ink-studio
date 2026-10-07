@@ -31,7 +31,7 @@ register the `.ink` extension itself.
 
 ## Getting started
 
-Open any `.ink` file and run the command **Open story graph** (or click the ribbon icon). The story root is found by
+Open any `.ink` file and run the command **Open story graph** (or click the network icon in the left ribbon, "Open ink graph"). The story root is found by
 following `INCLUDE`s upwards, so the graph covers every file the story includes.
 
 | Do this | To get this |
