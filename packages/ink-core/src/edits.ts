@@ -79,8 +79,9 @@ export function planLink(
 ): EditPlan {
 	const source = graph.nodes.find((n) => n.id === sourceId);
 	const target = graph.nodes.find((n) => n.id === targetId);
-	if (!source || !source.location || source.id === ROOT_NODE_ID || source.kind === "missing") {
-		return { ok: false, error: "Links can start from a knot or a stitch." };
+	const fromStart = sourceId === ROOT_NODE_ID;
+	if (!source || (!fromStart && (!source.location || source.kind === "missing"))) {
+		return { ok: false, error: "Links can start from the start of the story, a knot or a stitch." };
 	}
 	if (!target || target.id === ROOT_NODE_ID || target.id.startsWith(MISSING_NODE_PREFIX)) {
 		return { ok: false, error: "Links can end at a knot or a stitch." };
@@ -88,23 +89,42 @@ export function planLink(
 	if (target.kind === "function" || source.kind === "function") return { ok: false, error: "Functions are called, not linked." };
 	if ((kind === "choice" || kind === "sticky") && !choiceText.trim()) return { ok: false, error: "A choice needs its text." };
 
-	const lines = sources.get(source.location.file)?.split("\n");
-	if (!lines) return { ok: false, error: `File not found: ${source.location.file}` };
-	const end = lastContentLine(lines, source.location.line, HEADER);
-	const own = lines.slice(source.location.line, end);
+	// The start of the story is the root file's own content, above its first knot.
+	const file = fromStart ? graph.rootFile : source.location!.file;
+	const lines = sources.get(file)?.split("\n");
+	if (!lines) return { ok: false, error: `File not found: ${file}` };
+	const headerLine = fromStart ? 0 : source.location!.line;
+	const end = lastContentLine(lines, headerLine, HEADER);
+	const own = lines.slice(headerLine, end);
+	if (fromStart) {
+		const exit = own.findIndex((l) => START_EXIT.test(l));
+		if (exit >= 0) {
+			return {
+				ok: false,
+				error: `The story already starts with "${own[exit]!.trim()}" (line ${headerLine + exit + 1}). Anything added after it would never run: change that line instead.`,
+			};
+		}
+	}
 	const lastMarker = [...own].reverse().find((l) => CHOICE_LINE.test(l) || GATHER_LINE.test(l));
 	const afterChoices = lastMarker !== undefined && CHOICE_LINE.test(lastMarker);
 
-	const path = targetPath(source, target);
+	const path = fromStart ? target.id : targetPath(source, target);
 	const statement = {
 		choice: `* [${escapeText(choiceText)}] -> ${path}`,
 		sticky: `+ [${escapeText(choiceText)}] -> ${path}`,
 		divert: `${afterChoices ? "- " : ""}-> ${path}`,
 		tunnel: `${afterChoices ? "- " : ""}-> ${path} ->`,
 	}[kind];
-	const edit = insertAfterLine(source.location.file, lines, end, [statement]);
+	// An empty start: the line goes first, with a blank line before the first knot. After declarations it gets air.
+	const edit =
+		end === 0
+			? { file, from: { line: 1, ch: 0 }, to: { line: 1, ch: 0 }, text: `${statement}\n${lines.some((l) => l.trim() !== "") ? "\n" : ""}` }
+			: insertAfterLine(file, lines, end, fromStart && lastMarker === undefined ? ["", statement] : [statement]);
 	return verified(graph, sources, [edit], (after) => after.edges.some((e) => e.source === sourceId && e.target === targetId));
 }
+
+/** A top-level line that leaves the start of the story by itself: a divert, a tunnel call or a gather's divert. */
+const START_EXIT = /^\s*(?:-\s*)?->/;
 
 /** Shortest path ink resolves from the source: a sibling stitch by name, otherwise `knot.stitch`. */
 export function targetPath(source: StoryNode, target: StoryNode): string {

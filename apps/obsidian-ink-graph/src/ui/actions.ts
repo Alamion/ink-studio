@@ -9,6 +9,7 @@ import { loadInkSources, openSourceLocation } from "../adapter/storySources";
 import {
 	buildStoryGraph,
 	checkName,
+	ROOT_NODE_ID,
 	planCreateKnot,
 	planCreateStitch,
 	planDeleteLinks,
@@ -24,6 +25,9 @@ import { askFile, askLink, askName, askNewNode, confirmChanges, showBlocked } fr
 
 /** Where a link that was dropped on empty canvas should lead: a new knot there, or a new stitch in a knot. */
 export type DropTarget = { kind: "knot"; position: Point } | { kind: "stitch"; knotId: string };
+
+/** How a node is named to the user: the start of the story has no name of its own. */
+const shown = (id: string): string => (id === ROOT_NODE_ID ? "the start" : id);
 
 /** What is selected on the canvas: a node, or a visual edge (a bundle of links between two nodes). */
 export type GraphSelection = { kind: "node"; id: string } | { kind: "edge"; ids: string[] } | null;
@@ -146,9 +150,9 @@ export class GraphActions {
 	}
 
 	async connect(sourceId: string, targetId: string): Promise<void> {
-		const link = await askLink(this.host.app, sourceId, targetId);
+		const link = await askLink(this.host.app, shown(sourceId), targetId);
 		if (!link) return;
-		await this.run(`link ${sourceId} → ${targetId}`, (graph, sources) =>
+		await this.run(`link ${shown(sourceId)} → ${targetId}`, (graph, sources) =>
 			planLink(graph, sources, sourceId, targetId, link.kind, link.text),
 		);
 	}
@@ -182,14 +186,14 @@ export class GraphActions {
 		const answer = await askNewNode(
 			this.host.app,
 			parent ? `New stitch in ${parent}` : "New knot",
-			sourceId,
+			shown(sourceId),
 			(n) => checkName(fresh.graph, n, parent),
 		);
 		if (!answer) return;
 		const file = parent ? null : await this.knotFile(fresh.graph);
 		if (!parent && !file) return;
 		const newId = parent ? `${parent}.${answer.name}` : answer.name;
-		const label = `new ${parent ? "stitch" : "knot"} ${newId} linked from ${sourceId}`;
+		const label = `new ${parent ? "stitch" : "knot"} ${newId} linked from ${shown(sourceId)}`;
 
 		const created = await this.run(
 			label,

@@ -10,6 +10,7 @@ import {
 	planDeleteNode,
 	planLink,
 	planRename,
+	ROOT_NODE_ID,
 	type EditPlan,
 	type StoryGraph,
 } from "../src";
@@ -285,5 +286,55 @@ describe("drop a link on empty canvas: create the node, then link to it", () => 
 		const { graph } = createThenLink("find_torch", (g, s) => planCreateStitch(g, s, "find_torch", "hideout"), "find_torch.hideout", "divert");
 		expect(errors(graph)).toEqual([]);
 		expect(graph.edges.some((e) => e.source === "find_torch" && e.target === "find_torch.hideout")).toBe(true);
+	});
+});
+
+describe("links from the start of the story", () => {
+	const root = "story/main.ink";
+	const load = (text: string) => {
+		const sources = new Map([[root, text]]);
+		return { sources, graph: buildStoryGraph(root, sources) };
+	};
+	/** The plugin's two steps: create the knot, then link the start to it. */
+	function startLinkedTo(text: string, kind: "choice" | "divert" | "tunnel") {
+		const { sources, graph } = load(text);
+		const first = apply(planCreateKnot(graph, sources, "cellar"), sources, root);
+		return apply(planLink(first.graph, first.after, ROOT_NODE_ID, "cellar", kind, "Go down"), first.after, root);
+	}
+
+	it("an empty file: the link goes above the new knot", () => {
+		const { graph, after } = startLinkedTo("", "divert");
+		expect(errors(graph)).toEqual([]);
+		expect(graph.edges.some((e) => e.source === ROOT_NODE_ID && e.target === "cellar")).toBe(true);
+		expect(after.get(root)!.startsWith("-> cellar\n")).toBe(true);
+		expect(after.get(root)).toContain("=== cellar ===");
+	});
+
+	it("an empty file with a choice or a tunnel as the first line", () => {
+		for (const kind of ["choice", "tunnel"] as const) {
+			const { graph } = startLinkedTo("", kind);
+			expect(errors(graph)).toEqual([]);
+			expect(graph.edges.some((e) => e.source === ROOT_NODE_ID && e.target === "cellar" && e.kind === kind)).toBe(true);
+		}
+	});
+
+	it("a file with only declarations: the link goes after them, set apart", () => {
+		const { graph, after } = startLinkedTo("VAR gold = 5\nINCLUDE other.ink\n".replace("INCLUDE other.ink\n", ""), "divert");
+		expect(errors(graph)).toEqual([]);
+		expect(after.get(root)!.startsWith("VAR gold = 5\n\n-> cellar\n")).toBe(true);
+	});
+
+	it("refuses when the story already starts with a divert: anything after it would never run", () => {
+		const { sources, graph } = load("-> first\n\n=== first ===\nHello\n-> END\n\n=== second ===\n-> END\n");
+		const plan = planLink(graph, sources, ROOT_NODE_ID, "second", "divert");
+		expect(plan.ok).toBe(false);
+		expect(!plan.ok && plan.error).toMatch(/already starts with "-> first" \(line 1\)/);
+	});
+
+	it("an existing start without a divert can get one, even when it has prose", () => {
+		const { sources, graph } = load("Once upon a time.\n\n=== cave ===\n-> END\n");
+		const { graph: next } = apply(planLink(graph, sources, ROOT_NODE_ID, "cave", "divert"), sources, root);
+		expect(errors(next)).toEqual([]);
+		expect(next.edges.some((e) => e.source === ROOT_NODE_ID && e.target === "cave")).toBe(true);
 	});
 });

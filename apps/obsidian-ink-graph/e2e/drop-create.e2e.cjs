@@ -4,6 +4,8 @@ const { chromium } = require("/usr/local/lib/node_modules/@playwright/cli/node_m
 (async () => {
   const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
   const page = browser.contexts().flatMap((c) => c.pages()).find((p) => p.url().startsWith("app://obsidian.md/index.html"));
+  // right after launch the page may still be loading
+  await page.waitForFunction(() => window.electronWindow && window.app?.workspace?.layoutReady, null, { timeout: 60000 });
   const check = (name, ok, extra = "") => console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  " + extra}`);
   const wait = (ms) => page.waitForTimeout(ms);
   const VIEW = '.workspace-leaf-content[data-type="ink-graph-view"] .view-content';
@@ -147,6 +149,43 @@ const { chromium } = require("/usr/local/lib/node_modules/@playwright/cli/node_m
   await page.keyboard.press("Escape");
   await wait(300);
 
+  // 8. From the start block of a story that already starts with a divert: refused, and nothing is left behind
+  await dragTo("__root__", emptySpot.x, emptySpot.y);
+  await page.locator(".modal input[type=text]").first().fill("attic");
+  await page.locator(".modal button", { hasText: "Create" }).click();
+  await wait(2500);
+  const notices = await page.evaluate(() => [...document.querySelectorAll(".notice")].map((n) => n.textContent));
+  check("the start block explains why it cannot take another divert", notices.some((t) => /already starts with/.test(t)), notices.join(" | "));
+  check("the half-made knot was taken back", (await read(MAIN)) === original && !(await read(MAIN)).includes("attic"));
+
   check("the story is back to its original text", (await read(MAIN)) === original);
+
+  // 9. An empty .ink file: the start block is all there is; a new knot gets linked from it
+  await page.evaluate(async () => {
+    const existing = app.vault.getAbstractFileByPath("stories/empty.ink");
+    if (existing) await app.vault.modify(existing, "");
+    else await app.vault.create("stories/empty.ink", "");
+    app.workspace.getLeavesOfType("ink-graph-view").forEach((l) => l.detach());
+    await new Promise((r) => setTimeout(r, 600));
+    const leaf = app.workspace.getLeaf(false);
+    await leaf.setViewState({ type: "ink-graph-view", state: { rootFile: "stories/empty.ink" }, active: true });
+  });
+  await page.bringToFront();
+  await wait(3000);
+  check("only the start block is shown", (await page.locator(`${VIEW} .react-flow__node`).count()) === 1);
+  const pane2 = await page.locator(`${VIEW} .react-flow__pane`).boundingBox();
+  await dragTo("__root__", pane2.x + 300, pane2.y + 200);
+  check("dropping from the start block opens the dialog", (await modalCount()) === 1);
+  await page.locator(".modal input[type=text]").first().fill("cellar");
+  await page.locator(".modal select.dropdown:not(.is-measuring)").selectOption("divert");
+  await page.locator(".modal button", { hasText: "Create" }).click();
+  await wait(2000);
+  const emptyNow = await read("stories/empty.ink");
+  check("knot created and linked from the start", emptyNow.startsWith("-> cellar\n") && emptyNow.includes("=== cellar ==="), JSON.stringify(emptyNow));
+  check("the graph shows both blocks and the link", (await page.locator(`${VIEW} .react-flow__node`).count()) === 2 && (await page.locator(`${VIEW} .react-flow__edge`).count()) === 1);
+  await page.locator(`${VIEW} .react-flow__pane`).click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+z");
+  await wait(1500);
+  check("undo brings back the empty file", (await read("stories/empty.ink")) === "", JSON.stringify(await read("stories/empty.ink")));
   process.exit(0);
 })().catch((e) => { console.error("fatal:", e.message.split("\n").slice(0, 3).join(" | ")); process.exit(1); });

@@ -220,7 +220,7 @@ function GraphCanvas({
 							onConnectToNew(state.fromNode.id, { kind: "stitch", knotId: drop.id });
 						}
 					}}
-					isValidConnection={(c) => c.source !== c.target && isLinkable(graph, c.source) && isLinkable(graph, c.target)}
+					isValidConnection={(c) => c.source !== c.target && isLinkSource(graph, c.source) && isLinkable(graph, c.target)}
 					onNodeContextMenu={(e, node) => {
 						e.preventDefault();
 						onNodeMenu(e.nativeEvent, node.id);
@@ -329,6 +329,11 @@ export function classifyDrop(view: HTMLElement | null, target: Element | null, p
 	// A knot's group: its header links to the knot, the rest of it is room for a new stitch.
 	const insideHeader = point.y - nodeEl.getBoundingClientRect().top < CONFIG.group.headerHeight * zoom;
 	return insideHeader ? { kind: "node", id } : { kind: "group", id };
+}
+
+/** A link can also start at the story's start (it becomes a line above the first knot). */
+function isLinkSource(graph: StoryGraph, id: string): boolean {
+	return id === ROOT_NODE_ID || isLinkable(graph, id);
 }
 
 /** Links connect story nodes: not the start, missing targets or functions. */

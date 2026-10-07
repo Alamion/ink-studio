@@ -12,6 +12,8 @@ const VAULT = path.join(process.env.HOME, ".var/app/md.obsidian.Obsidian/cache/i
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
   const page = browser.contexts().flatMap((c) => c.pages()).find((p) => p.url().startsWith("app://obsidian.md/index.html"));
+  // right after launch the page may still be loading
+  await page.waitForFunction(() => window.electronWindow && window.app?.workspace?.layoutReady, null, { timeout: 60000 });
   const wait = (ms) => page.waitForTimeout(ms);
   const VIEW = '.workspace-leaf-content[data-type="ink-graph-view"] .view-content';
   const shot = async (name) => { await page.bringToFront(); await page.locator(VIEW).screenshot({ path: `${OUT}/${name}.png` }); };

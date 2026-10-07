@@ -5,6 +5,8 @@ const { chromium } = require("/usr/local/lib/node_modules/@playwright/cli/node_m
 (async () => {
   const browser = await chromium.connectOverCDP("http://127.0.0.1:9333");
   const page = browser.contexts().flatMap((c) => c.pages()).find((p) => p.url().startsWith("app://obsidian.md/index.html"));
+  // right after launch the page may still be loading
+  await page.waitForFunction(() => window.electronWindow && window.app?.workspace?.layoutReady, null, { timeout: 60000 });
   const check = (name, ok, extra = "") => console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  " + extra}`);
   const G = '.workspace-leaf-content[data-type="ink-graph-view"]';
   const wait = (ms) => page.waitForTimeout(ms);
