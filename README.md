@@ -21,7 +21,7 @@ Every action is written back to your `.ink` text, so nothing else stores your st
 - **Variables at a glance.** Click a variable to light up the places that write it (orange) and read it (blue).
 - **Loop warnings.** A cycle with no choice in it hangs the player. Ink Graph marks such cycles in red; a dashed outline
   means the loop is conditional and may be fine (a counter, for example).
-- **Edit on the map.** Create knots and stitches, drag a link between two knots, rename, delete. Every edit is checked by
+- **Edit on the map.** Create knots and stitches, drag a link between two nodes (or out to empty space to create the node it leads to), rename, delete. Every edit is checked by
   recompiling the story first and is refused if it would add an error.
 - **Details on demand.** Select a link to see its kind, its condition and every place it is written, with the source line.
 - **Your layout is yours.** Positions are saved next to the story (`main.graph.json`), so they travel with it in git.
@@ -42,6 +42,8 @@ following `INCLUDE`s upwards, so the graph covers every file the story includes.
 | Right-click the canvas | New knot |
 | Right-click a knot | Add stitch, rename, delete |
 | Drag from a node's right handle to another node | Link: choice, sticky choice, divert or tunnel |
+| Drag from a handle and let go on empty canvas | A new knot, linked from the node you started at |
+| Drag from a handle and let go inside a knot's group | A new stitch in that knot, linked the same way |
 | Delete or Backspace | Delete the selected node or link |
 | Ctrl/Cmd+Z in the graph | Undo the last graph edit |
 
@@ -52,6 +54,9 @@ following `INCLUDE`s upwards, so the graph covers every file the story includes.
 
 ### Editing safely
 
+- **Dropping a link on empty canvas** opens one small dialog for the new node's name and the kind of link. Esc, a click
+  outside, the X or Cancel closes it without changing anything, and nothing opens if you let go outside the graph view.
+  The node and its link are one change: a single undo takes back both.
 - **Rename** updates every reference ink resolves to the node, across files: diverts, `knot.stitch` paths and read
   counts like `{knot > 1}`. Prose and comments are left alone.
 - **Delete a node** removes its lines up to the next header (a knot goes with its stitches). Diverts and choices that led

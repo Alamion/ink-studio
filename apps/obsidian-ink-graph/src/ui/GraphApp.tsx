@@ -17,7 +17,7 @@ import { CONFIG } from "../config";
 import type { Point } from "../adapter/layoutStore";
 import { ROOT_NODE_ID, type LoopWarning, type SourceLocation, type StoryEdge, type StoryGraph, type StoryNode, type VariableAccess } from "@ink-studio/core";
 import type { InkGraphSettings } from "../settings";
-import type { GraphSelection } from "./actions";
+import type { DropTarget, GraphSelection } from "./actions";
 import { EDGE_TYPES, EdgeUiContext, KIND_ICON } from "./edges";
 import { fitGroups } from "./groupFit";
 import { layoutGraph, type InkFlowEdge, type InkFlowNode } from "./layout";
@@ -34,6 +34,8 @@ export interface GraphAppProps {
 	onResetLayout: () => void;
 	/** A link was drawn from `source`'s handle to `target` (nothing is edited yet). */
 	onConnect: (source: string, target: string) => void;
+	/** A link was let go on empty canvas or inside a knot's group: offer to create the node there. */
+	onConnectToNew: (source: string, drop: DropTarget) => void;
 	onNodeMenu: (event: MouseEvent, nodeId: string) => void;
 	/** Right click on a visual edge; `edgeIds` are the story links bundled in it. */
 	onEdgeMenu: (event: MouseEvent, edgeIds: string[]) => void;
@@ -65,6 +67,7 @@ function GraphCanvas({
 	onPositionsChange,
 	onResetLayout,
 	onConnect,
+	onConnectToNew,
 	onNodeMenu,
 	onPaneMenu,
 	onEdgeMenu,
@@ -80,7 +83,7 @@ function GraphCanvas({
 	const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 	const [panelOpen, setPanelOpen] = useState(settings.sidePanel !== "closed");
 	const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-	const { fitView, getNodes, screenToFlowPosition } = useReactFlow<InkFlowNode, InkFlowEdge>();
+	const { fitView, getNodes, getZoom, screenToFlowPosition } = useReactFlow<InkFlowNode, InkFlowEdge>();
 	const fittedRoot = useRef<string | null>(null);
 	const appRef = useRef<HTMLDivElement>(null);
 
@@ -208,11 +211,14 @@ function GraphCanvas({
 					onConnectEnd={(event, state) => {
 						if (state.isValid || !state.fromNode) return;
 						const point = "changedTouches" in event ? event.changedTouches[0]! : event;
-						const targetId = document
-							.elementFromPoint(point.clientX, point.clientY)
-							?.closest(".react-flow__node")
-							?.getAttribute("data-id");
-						if (targetId && targetId !== state.fromNode.id && isLinkable(graph, targetId)) onConnect(state.fromNode.id, targetId);
+						const drop = classifyDrop(appRef.current, document.elementFromPoint(point.clientX, point.clientY), { x: point.clientX, y: point.clientY }, getZoom());
+						if (drop.kind === "node") {
+							if (drop.id !== state.fromNode.id && isLinkable(graph, drop.id)) onConnect(state.fromNode.id, drop.id);
+						} else if (drop.kind === "pane") {
+							onConnectToNew(state.fromNode.id, { kind: "knot", position: screenToFlowPosition({ x: point.clientX, y: point.clientY }) });
+						} else if (drop.kind === "group") {
+							onConnectToNew(state.fromNode.id, { kind: "stitch", knotId: drop.id });
+						}
 					}}
 					isValidConnection={(c) => c.source !== c.target && isLinkable(graph, c.source) && isLinkable(graph, c.target)}
 					onNodeContextMenu={(e, node) => {
@@ -301,6 +307,28 @@ function LoopBanner({ loops, onOpen }: { loops: LoopWarning[]; onOpen: (loop: Lo
 			{more}
 		</button>
 	);
+}
+
+/** Pieces of the view that are not the canvas: letting a link go over them never creates anything. */
+const NOT_CANVAS = ".ink-panel, .ink-panel-toggle, .ink-loop-banner, .react-flow__minimap, .react-flow__controls, .ink-edge-label, .react-flow__attribution";
+
+export type DropSpot =
+	| { kind: "none" } // outside the graph view, or over its controls: do nothing
+	| { kind: "node"; id: string } // on a node (or a knot group's header): link to it
+	| { kind: "group"; id: string } // inside a knot's group, away from its stitches and header: new stitch
+	| { kind: "pane" }; // empty canvas: new knot
+
+/** Decides what the element under the pointer means for a link that was just let go at `point` (client px). */
+export function classifyDrop(view: HTMLElement | null, target: Element | null, point: { x: number; y: number }, zoom: number): DropSpot {
+	if (!view || !target || !view.contains(target) || target.closest(NOT_CANVAS)) return { kind: "none" };
+	const nodeEl = target.closest<HTMLElement>(".react-flow__node");
+	if (!nodeEl) return target.closest(".react-flow__pane, .react-flow__edge, .react-flow__edges") ? { kind: "pane" } : { kind: "none" };
+	const id = nodeEl.getAttribute("data-id");
+	if (!id) return { kind: "none" };
+	if (!nodeEl.classList.contains("react-flow__node-inkGroup")) return { kind: "node", id };
+	// A knot's group: its header links to the knot, the rest of it is room for a new stitch.
+	const insideHeader = point.y - nodeEl.getBoundingClientRect().top < CONFIG.group.headerHeight * zoom;
+	return insideHeader ? { kind: "node", id } : { kind: "group", id };
 }
 
 /** Links connect story nodes: not the start, missing targets or functions. */

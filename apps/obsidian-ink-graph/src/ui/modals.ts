@@ -160,6 +160,100 @@ class LinkModal extends Modal {
 	}
 }
 
+export interface NewNodeChoice extends LinkChoice {
+	name: string;
+}
+
+/**
+ * One dialog for "a link was dropped on empty canvas": the new node's name plus how to link it.
+ * Closes on Esc, a click outside, the X, or Cancel; resolves null then.
+ */
+export function askNewNode(
+	app: App,
+	title: string,
+	source: string,
+	validate: (name: string) => string | null,
+): Promise<NewNodeChoice | null> {
+	return new Promise((resolve) => new NewNodeModal(app, title, source, validate, resolve).open());
+}
+
+class NewNodeModal extends Modal {
+	private name = "";
+	private choice: LinkChoice = { kind: "choice", text: "" };
+	/** The choice text follows the name until the user types their own. */
+	private textEdited = false;
+	private done = false;
+
+	constructor(
+		app: App,
+		private readonly title: string,
+		private readonly source: string,
+		private readonly validate: (name: string) => string | null,
+		private readonly resolve: (choice: NewNodeChoice | null) => void,
+	) {
+		super(app);
+	}
+
+	override onOpen(): void {
+		this.setTitle(this.title);
+		this.contentEl.createDiv({ cls: "ink-modal-hint", text: `Linked from ${this.source}. Press Esc to cancel.` });
+		const error = this.contentEl.createDiv({ cls: "ink-modal-error" });
+		const isChoice = (): boolean => this.choice.kind === "choice" || this.choice.kind === "sticky";
+		let textInput: HTMLInputElement | null = null;
+		const submit = (): void => {
+			const problem = this.validate(this.name);
+			if (problem || !this.name) return void error.setText(problem ?? "Enter a name.");
+			if (isChoice() && !this.choice.text.trim()) return void error.setText("A choice needs its text.");
+			this.finish({ ...this.choice, name: this.name });
+		};
+		const enterSubmits = (input: HTMLInputElement): void =>
+			input.addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), submit()));
+
+		new Setting(this.contentEl).setName("Name").addText((t) => {
+			t.onChange((v) => {
+				this.name = v.trim();
+				error.setText(this.name ? (this.validate(this.name) ?? "") : "");
+				if (!this.textEdited && textInput) {
+					this.choice.text = this.name.replace(/_/g, " ");
+					textInput.value = this.choice.text;
+				}
+			});
+			enterSubmits(t.inputEl);
+			activeWindow.setTimeout(() => t.inputEl.focus(), 0);
+		});
+		new Setting(this.contentEl).setName("Link").addDropdown((d) => {
+			for (const [kind, label] of Object.entries(LINK_KINDS)) d.addOption(kind, label);
+			d.setValue(this.choice.kind).onChange((v) => {
+				this.choice.kind = v as LinkKind;
+				textSetting.settingEl.toggle(isChoice());
+			});
+		});
+		const textSetting = new Setting(this.contentEl).setName("Choice text").addText((t) => {
+			textInput = t.inputEl;
+			t.onChange((v) => {
+				this.choice.text = v;
+				this.textEdited = true;
+			});
+			enterSubmits(t.inputEl);
+		});
+		new Setting(this.contentEl)
+			.addButton((b) => b.setButtonText("Cancel").onClick(() => this.finish(null)))
+			.addButton((b) => b.setButtonText("Create").setCta().onClick(submit));
+	}
+
+	override onClose(): void {
+		this.finish(null);
+		this.contentEl.empty();
+	}
+
+	private finish(value: NewNodeChoice | null): void {
+		if (this.done) return;
+		this.done = true;
+		this.resolve(value);
+		this.close();
+	}
+}
+
 /** Most lines shown per change in a preview; the rest is summarised. */
 const PREVIEW_LINES = 12;
 

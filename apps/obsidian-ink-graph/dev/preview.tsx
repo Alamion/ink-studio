@@ -28,6 +28,7 @@ createRoot(container).render(
 		onPositionsChange={(changed) => console.log("positions", changed)}
 		onResetLayout={() => console.log("reset layout")}
 		onConnect={(source, target) => console.log("connect", source, target)}
+		onConnectToNew={(source, drop) => console.log("connect to new", source, drop)}
 		onNodeMenu={(_e, id) => console.log("node menu", id)}
 		onPaneMenu={(_e, position) => console.log("pane menu", position)}
 		onEdgeMenu={(_e, ids) => console.log("edge menu", ids)}

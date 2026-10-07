@@ -488,3 +488,14 @@
 .ink-graph-view:focus {
 	outline: none;
 }
+
+.ink-modal-hint {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-bottom: var(--size-4-2);
+}
+.ink-modal-error {
+	color: var(--text-error);
+	font-size: var(--font-ui-small);
+	min-height: 1.4em;
+}

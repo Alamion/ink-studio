@@ -20,7 +20,10 @@ import {
 	type StoryGraph,
 } from "@ink-studio/core";
 import type { InkGraphSettings } from "../settings";
-import { askFile, askLink, askName, confirmChanges, showBlocked } from "./modals";
+import { askFile, askLink, askName, askNewNode, confirmChanges, showBlocked } from "./modals";
+
+/** Where a link that was dropped on empty canvas should lead: a new knot there, or a new stitch in a knot. */
+export type DropTarget = { kind: "knot"; position: Point } | { kind: "stitch"; knotId: string };
 
 /** What is selected on the canvas: a node, or a visual edge (a bundle of links between two nodes). */
 export type GraphSelection = { kind: "node"; id: string } | { kind: "edge"; ids: string[] } | null;
@@ -165,6 +168,49 @@ export class GraphActions {
 		if (this.host.settings().newKnotTarget !== "ask" || graph.files.length < 2) return graph.rootFile;
 		const files = [graph.rootFile, ...graph.files.filter((f) => f !== graph.rootFile)];
 		return askFile(this.host.app, "Add the new knot to…", files);
+	}
+
+	/**
+	 * A link was dragged from `sourceId` and let go on empty canvas (new knot) or inside a knot's group (new stitch):
+	 * one dialog asks for the name and the kind of link, then both edits are applied as a single undoable change.
+	 */
+	async connectToNew(sourceId: string, drop: DropTarget): Promise<void> {
+		const fresh = await this.freshGraph();
+		if (!fresh) return;
+		const parent = drop.kind === "stitch" ? drop.knotId : null;
+		if (parent && !fresh.graph.nodes.some((n) => n.id === parent && n.kind === "knot")) return;
+		const answer = await askNewNode(
+			this.host.app,
+			parent ? `New stitch in ${parent}` : "New knot",
+			sourceId,
+			(n) => checkName(fresh.graph, n, parent),
+		);
+		if (!answer) return;
+		const file = parent ? null : await this.knotFile(fresh.graph);
+		if (!parent && !file) return;
+		const newId = parent ? `${parent}.${answer.name}` : answer.name;
+		const label = `new ${parent ? "stitch" : "knot"} ${newId} linked from ${sourceId}`;
+
+		const created = await this.run(
+			label,
+			(g, s) => (parent ? planCreateStitch(g, s, parent, answer.name) : planCreateKnot(g, s, answer.name, file ?? g.rootFile)),
+			drop.kind === "knot" ? () => this.host.placeNode(newId, drop.position) : undefined,
+		);
+		if (!created) return;
+		const linked = await this.run(label, (g, s) => planLink(g, s, sourceId, newId, answer.kind, answer.text));
+		if (linked) return this.mergeLastTwo(label);
+		// The node exists but the link failed: take the node back so nothing half-done stays in the story.
+		await this.undo();
+	}
+
+	/** Two history entries become one, so a single undo takes back both the node and its link. */
+	private mergeLastTwo(label: string): void {
+		const second = this.history.pop();
+		const first = this.history.pop();
+		if (!first || !second) return void (first && this.history.push(first), second && this.history.push(second));
+		const files = new Map(first.change.files);
+		for (const [path, texts] of second.change.files) files.set(path, { before: files.get(path)?.before ?? texts.before, after: texts.after });
+		this.history.push({ change: { label, files }, undoLayout: first.undoLayout });
 	}
 
 	async createStitch(knotId: string): Promise<void> {

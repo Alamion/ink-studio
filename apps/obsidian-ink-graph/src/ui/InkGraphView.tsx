@@ -178,6 +178,7 @@ export class InkGraphView extends ItemView {
 					this.scheduleLayoutSave();
 				}}
 				onConnect={(source, target) => void this.actions.connect(source, target)}
+				onConnectToNew={(source, drop) => void this.actions.connectToNew(source, drop)}
 				onNodeMenu={(event, nodeId) => this.graph && this.actions.nodeMenu(event, nodeId, this.graph)}
 				onPaneMenu={(event, position) => this.actions.paneMenu(event, position)}
 				onEdgeMenu={(event, edgeIds) => this.graph && this.actions.edgeMenu(event, edgeIds, this.graph)}

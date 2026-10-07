@@ -1,5 +1,10 @@
 # End-to-end scenarios (real Obsidian)
 
+Run them against an isolated Obsidian on a virtual display: `e2e/launch-isolated.sh <ink-player main.js>`, then any
+`node e2e/<scenario>.e2e.cjs`, then `e2e/stop-isolated.sh`. Build the plugin first. Scenarios: `delete.e2e.cjs`,
+`settings.e2e.cjs`, `drop-create.e2e.cjs` (a link dropped on empty canvas), `screenshots.e2e.cjs` (README images).
+The notes below are from the first scenario and still apply.
+
 Behaviour that only exists in a real host (focus, keyboard, drag) is checked here, per the constitution (Principle VI).
 
 - `setup-debug.sh <ink-player main.js>`: builds an isolated copy of the vault for a throw-away flatpak Obsidian

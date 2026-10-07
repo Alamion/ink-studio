@@ -246,3 +246,44 @@ describe("safety net", () => {
 		if (!plan.ok) expect(plan.error).toContain("would not compile");
 	});
 });
+
+describe("drop a link on empty canvas: create the node, then link to it", () => {
+	/** What the plugin does in two steps: plan the creation, apply it, plan the link on the result. */
+	function createThenLink(sourceId: string, create: (g: StoryGraph, s: Map<string, string>) => EditPlan, newId: string, kind: "choice" | "divert" | "tunnel") {
+		const { sources, graph } = demo();
+		const first = apply(create(graph, sources), sources);
+		const second = apply(planLink(first.graph, first.after, sourceId, newId, kind, "Onwards"), first.after);
+		return { ...second, source: sources };
+	}
+
+	it("a new knot linked from a knot", () => {
+		const { graph, after } = createThenLink("start", (g, s) => planCreateKnot(g, s, "cave"), "cave", "choice");
+		expect(errors(graph)).toEqual([]);
+		expect(graph.edges.some((e) => e.source === "start" && e.target === "cave" && e.kind === "choice")).toBe(true);
+		expect(after.get(ROOT)).toContain("=== cave ===");
+	});
+
+	it("a new knot linked from the last knot of its file (both edits touch the end of the file)", () => {
+		const { graph } = createThenLink("ending", (g, s) => planCreateKnot(g, s, "epilogue"), "epilogue", "divert");
+		expect(errors(graph)).toEqual([]);
+		expect(graph.edges.some((e) => e.source === "ending" && e.target === "epilogue")).toBe(true);
+	});
+
+	it("a new stitch in a knot, linked from one of that knot's stitches", () => {
+		const { graph } = createThenLink("find_torch.search", (g, s) => planCreateStitch(g, s, "find_torch", "rest"), "find_torch.rest", "choice");
+		expect(errors(graph)).toEqual([]);
+		expect(graph.edges.some((e) => e.source === "find_torch.search" && e.target === "find_torch.rest")).toBe(true);
+	});
+
+	it("a new stitch in another knot, linked from a knot", () => {
+		const { graph } = createThenLink("start", (g, s) => planCreateStitch(g, s, "forest", "edge"), "forest.edge", "tunnel");
+		expect(errors(graph)).toEqual([]);
+		expect(graph.edges.some((e) => e.source === "start" && e.target === "forest.edge" && e.kind === "tunnel")).toBe(true);
+	});
+
+	it("a stitch dropped inside its own knot, linked from the knot itself", () => {
+		const { graph } = createThenLink("find_torch", (g, s) => planCreateStitch(g, s, "find_torch", "hideout"), "find_torch.hideout", "divert");
+		expect(errors(graph)).toEqual([]);
+		expect(graph.edges.some((e) => e.source === "find_torch" && e.target === "find_torch.hideout")).toBe(true);
+	});
+});

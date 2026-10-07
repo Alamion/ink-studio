@@ -45,7 +45,8 @@ apps/obsidian-ink-graph/src/
 ## End-to-end scenarios
 
 Behaviour that only exists in a real Obsidian (focus, keyboard, drag, settings) is checked in
-`apps/obsidian-ink-graph/e2e/` against an isolated copy, never against a real vault. See its README.
+`apps/obsidian-ink-graph/e2e/` against an isolated copy on a virtual display, never against a real vault.
+Start it with `e2e/launch-isolated.sh`, stop it with `e2e/stop-isolated.sh`. See its README.
 
 ## Screenshots and the demo GIF
 
